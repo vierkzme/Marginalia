@@ -199,7 +199,7 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
               type="text"
               value={lemma}
               onChange={(e) => setLemma(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface font-semibold text-sm focus:outline-hidden focus:ring-2 focus:ring-editorial-rust"
+              className="w-full px-2.5 py-1.5 rounded border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-ink-charcoal dark:text-ink-ivory font-semibold text-sm focus:outline-hidden focus:ring-2 focus:ring-editorial-rust"
               required
             />
           </div>
@@ -213,7 +213,7 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
                 type="text"
                 value={partOfSpeech}
                 onChange={(e) => setPartOfSpeech(e.target.value)}
-                className="w-full px-2 py-1 rounded border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface font-mono text-xs"
+                className="w-full px-2 py-1 rounded border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-ink-charcoal dark:text-ink-ivory font-mono text-xs"
               />
             </div>
             <div>
@@ -225,7 +225,7 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
                 value={phonetic}
                 onChange={(e) => setPhonetic(e.target.value)}
                 placeholder="/.../"
-                className="w-full px-2 py-1 rounded border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface font-mono text-xs"
+                className="w-full px-2 py-1 rounded border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-ink-charcoal dark:text-ink-ivory placeholder:text-ink-graphite/60 dark:placeholder:text-ink-pewter/60 font-mono text-xs"
               />
             </div>
           </div>
@@ -238,7 +238,7 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
               rows={2}
               value={definition}
               onChange={(e) => setDefinition(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-xs focus:outline-hidden focus:ring-2 focus:ring-editorial-rust"
+              className="w-full px-2.5 py-1.5 rounded border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-ink-charcoal dark:text-ink-ivory placeholder:text-ink-graphite/60 dark:placeholder:text-ink-pewter/60 text-xs focus:outline-hidden focus:ring-2 focus:ring-editorial-rust"
               placeholder="Explain the meaning of this word or idiom..."
               required
             />
@@ -253,7 +253,7 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
               value={personalNote}
               onChange={(e) => setPersonalNote(e.target.value)}
               placeholder="e.g. Heard in episode 3, metaphor for risk"
-              className="w-full px-2.5 py-1 rounded border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-xs"
+              className="w-full px-2.5 py-1 rounded border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-ink-charcoal dark:text-ink-ivory placeholder:text-ink-graphite/60 dark:placeholder:text-ink-pewter/60 text-xs"
             />
           </div>
 

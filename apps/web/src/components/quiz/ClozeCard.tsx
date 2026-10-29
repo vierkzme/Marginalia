@@ -227,7 +227,7 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
                 value={typedAnswer}
                 onChange={(e) => setTypedAnswer(e.target.value)}
                 placeholder="Type your answer to practice (optional)..."
-                className="flex-1 px-3.5 py-2 rounded-lg border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-sm font-mono focus:outline-hidden focus:ring-2 focus:ring-editorial-rust"
+                className="flex-1 px-3.5 py-2 rounded-lg border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-ink-charcoal dark:text-ink-ivory placeholder:text-ink-graphite/60 dark:placeholder:text-ink-pewter/60 text-sm font-mono focus:outline-hidden focus:ring-2 focus:ring-editorial-rust"
               />
               <button
                 type="submit"

@@ -92,7 +92,7 @@ export const VaultPage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search lemma or meaning..."
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-xs font-mono focus:outline-hidden focus:ring-2 focus:ring-editorial-rust"
+              className="w-full pl-9 pr-4 py-2 rounded-xl border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-ink-charcoal dark:text-ink-ivory placeholder:text-ink-graphite/60 dark:placeholder:text-ink-pewter/60 text-xs font-mono focus:outline-hidden focus:ring-2 focus:ring-editorial-rust"
             />
             <Search className="w-4 h-4 text-ink-graphite absolute left-3 top-2.5" />
           </form>

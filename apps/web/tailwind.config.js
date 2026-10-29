@@ -13,6 +13,7 @@ export default {
         ink: {
           dark: '#111318',
           elevated: '#1A1D24',
+          surface: '#20242C',
           charcoal: '#1C1917',
           ivory: '#F5F2EB',
           graphite: '#57534E',
