@@ -1,0 +1,250 @@
+// apps/api/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum ArticleSourceType {
+  RAW_TEXT
+  URL
+  TXT_FILE
+  SRT_FILE
+}
+
+enum MasteryStage {
+  NEW       // Baru disimpan, belum pernah direview (n = 0, I = 0)
+  LEARNING  // Sedang dipelajari (Interval < 7 hari) -> Sorotan KUNING
+  YOUNG     // Mulai mengendap (Interval 7 - 21 hari) -> Sorotan KUNING
+  MATURE    // Dikuasai jangka panjang (Interval > 21 hari) -> Tanpa Sorotan
+  KNOWN     // Ditandai sudah dikuasai sejak awal -> Tanpa Sorotan
+}
+
+// ==========================================
+// 1. USER & AUTHENTICATION
+// ==========================================
+
+model User {
+  id              String    @id @default(uuid()) @db.Uuid
+  email           String    @unique @db.VarChar(255)
+  passwordHash    String    @db.VarChar(255)
+  fullName        String    @db.VarChar(120)
+  dailyReviewGoal Int       @default(20)
+  currentStreak   Int       @default(0)
+  longestStreak   Int       @default(0)
+  lastActiveDate  DateTime? @db.Date
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  articles        Article[]
+  vocabItems      VocabItem[]
+  customTags      Tag[]
+  reviewLogs      ReviewLog[]
+  dailyActivities DailyActivity[]
+
+  @@map("users")
+}
+
+// ==========================================
+// 2. ARTICLES & NLP SENTENCE SEGMENTATION
+// ==========================================
+
+model Article {
+  id                 String            @id @default(uuid()) @db.Uuid
+  userId             String            @db.Uuid
+  title              String            @db.VarChar(300)
+  sourceType         ArticleSourceType @default(RAW_TEXT)
+  sourceUrl          String?           @db.Text
+  rawContent         String            @db.Text
+  totalWordCount     Int               @default(0)
+  uniqueLemmaCount   Int               @default(0)
+  initialCoveragePct Float             @default(0.0)
+  uniqueLemmasJson   Json              @default("[]")
+  readingProgressPct Float             @default(0.0)
+  isCompleted        Boolean           @default(false)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sentences          ArticleSentence[]
+  vocabContexts      VocabContext[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("articles")
+}
+
+model ArticleSentence {
+  id             String         @id @default(uuid()) @db.Uuid
+  articleId      String         @db.Uuid
+  paragraphIndex Int
+  sentenceIndex  Int
+  sentenceText   String         @db.Text
+  tokensJson     Json
+
+  article        Article        @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  vocabContexts  VocabContext[]
+
+  @@unique([articleId, sentenceIndex])
+  @@index([articleId, paragraphIndex])
+  @@map("article_sentences")
+}
+
+// ==========================================
+// 3. VOCABULARY & IDIOM VAULT (SM-2 CORE)
+// ==========================================
+
+model VocabItem {
+  id             String         @id @default(uuid()) @db.Uuid
+  userId         String         @db.Uuid
+  lemma          String         @db.VarChar(200)
+  displayTerm    String         @db.VarChar(200)
+  partOfSpeech   String         @default("UNKNOWN") @db.VarChar(50)
+  phonetic       String?        @db.VarChar(100)
+  definition     String         @db.Text
+  personalNote   String?        @db.Text
+
+  masteryStage   MasteryStage   @default(NEW)
+  repetition     Int            @default(0)
+  easinessFactor Float          @default(2.5)
+  interval       Int            @default(0)
+  lapseCount     Int            @default(0)
+  isLeech        Boolean        @default(false)
+  nextReviewDate DateTime       @default(now())
+  lastReviewedAt DateTime?
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contexts       VocabContext[]
+  tags           VocabTag[]
+  reviewLogs     ReviewLog[]
+
+  @@unique([userId, lemma])
+  @@index([userId, nextReviewDate])
+  @@index([userId, masteryStage, isLeech])
+  @@map("vocab_items")
+}
+
+// ==========================================
+// 4. MANY-TO-MANY SENTENCE CONTEXT BINDING
+// ==========================================
+
+model VocabContext {
+  id           String           @id @default(uuid()) @db.Uuid
+  vocabItemId  String           @db.Uuid
+  articleId    String?          @db.Uuid
+  sentenceId   String?          @db.Uuid
+  surfaceForm  String           @db.VarChar(200)
+  sentenceText String           @db.Text
+  startOffset  Int
+  endOffset    Int
+  isPrimary    Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+
+  vocabItem    VocabItem        @relation(fields: [vocabItemId], references: [id], onDelete: Cascade)
+  article      Article?         @relation(fields: [articleId], references: [id], onDelete: SetNull)
+  sentence     ArticleSentence? @relation(fields: [sentenceId], references: [id], onDelete: SetNull)
+
+  @@unique([vocabItemId, sentenceText, startOffset])
+  @@index([vocabItemId])
+  @@index([articleId])
+  @@map("vocab_contexts")
+}
+
+// ==========================================
+// 5. TAGS & CATEGORIES (IDIOM, SLANG, ETC.)
+// ==========================================
+
+model Tag {
+  id        String     @id @default(uuid()) @db.Uuid
+  userId    String?    @db.Uuid
+  name      String     @db.VarChar(60)
+  slug      String     @db.VarChar(60)
+  colorHex  String     @default("#6366F1") @db.VarChar(20)
+  isSystem  Boolean    @default(false)
+  createdAt DateTime   @default(now())
+
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabTags VocabTag[]
+
+  @@unique([userId, slug])
+  @@map("tags")
+}
+
+model VocabTag {
+  vocabItemId String    @db.Uuid
+  tagId       String    @db.Uuid
+  assignedAt  DateTime  @default(now())
+
+  vocabItem   VocabItem @relation(fields: [vocabItemId], references: [id], onDelete: Cascade)
+  tag         Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([vocabItemId, tagId])
+  @@map("vocab_tags")
+}
+
+// ==========================================
+// 6. SM-2 REVIEW HISTORY & DAILY HEATMAP
+// ==========================================
+
+model ReviewLog {
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @db.Uuid
+  vocabItemId    String    @db.Uuid
+  qualityGrade   Int
+  prevRepetition Int
+  newRepetition  Int
+  prevEf         Float
+  newEf          Float
+  prevInterval   Int
+  newInterval    Int
+  responseTimeMs Int       @default(0)
+  reviewedAt     DateTime  @default(now())
+
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabItem      VocabItem @relation(fields: [vocabItemId], references: [id], onDelete: Cascade)
+
+  @@index([userId, reviewedAt(sort: Desc)])
+  @@index([vocabItemId, reviewedAt(sort: Desc)])
+  @@map("review_logs")
+}
+
+model DailyActivity {
+  id                    String   @id @default(uuid()) @db.Uuid
+  userId                String   @db.Uuid
+  activityDate          DateTime @db.Date
+  wordsMinedCount       Int      @default(0)
+  reviewsCompletedCount Int      @default(0)
+  articlesReadCount     Int      @default(0)
+  totalActivityScore    Int      @default(0)
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, activityDate])
+  @@index([userId, activityDate(sort: Asc)])
+  @@map("daily_activities")
+}
+
+// ==========================================
+// 7. HYBRID DICTIONARY CACHE
+// ==========================================
+
+model DictionaryCache {
+  lemma        String   @id @db.VarChar(200)
+  phonetic     String?  @db.VarChar(100)
+  partOfSpeech String?  @db.VarChar(50)
+  definition   String   @db.Text
+  source       String   @default("FREE_DICT_API") @db.VarChar(50)
+  updatedAt    DateTime @updatedAt
+
+  @@map("dictionary_cache")
+}
