@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ArrowLeft, ExternalLink, BookMarked, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SmartHighlightedSentence, SentenceHighlight } from './SmartHighlightedSentence';
 import { CoverageBadge } from '../importer/CoverageBadge';
+import { useTextSelection } from '../../hooks/useTextSelection';
+import { SelectionPopover } from './SelectionPopover';
 
 export interface WebReaderProps {
   article: {
@@ -24,15 +26,19 @@ export interface WebReaderProps {
       highlights: SentenceHighlight[];
     }>;
   }>;
+  onMineSuccess?: () => void;
   children?: React.ReactNode;
 }
 
 export const WebReader: React.FC<WebReaderProps> = ({
   article,
   paragraphs,
+  onMineSuccess,
   children,
 }) => {
   const navigate = useNavigate();
+  const readerContentRef = useRef<HTMLDivElement>(null);
+  const { selectionData, clearSelection } = useTextSelection(readerContentRef);
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl'>('lg');
   const [readingTheme, setReadingTheme] = useState<'light' | 'sepia' | 'dark'>('light');
   const [isLedgerOpen, setIsLedgerOpen] = useState(false);
@@ -199,7 +205,10 @@ export const WebReader: React.FC<WebReaderProps> = ({
             </div>
           </header>
 
-          <div className={`font-serif ${getFontSizeClass()} text-ink-charcoal dark:text-ink-ivory space-y-6 select-text`}>
+          <div
+            ref={readerContentRef}
+            className={`font-serif ${getFontSizeClass()} text-ink-charcoal dark:text-ink-ivory space-y-6 select-text`}
+          >
             {paragraphs.map((para) => (
               <p key={para.paragraphIndex} className="leading-relaxed">
                 {para.sentences.map((sent) => (
@@ -214,6 +223,17 @@ export const WebReader: React.FC<WebReaderProps> = ({
               </p>
             ))}
           </div>
+
+          {selectionData && (
+            <SelectionPopover
+              articleId={article.id}
+              selectionData={selectionData}
+              onClose={clearSelection}
+              onSaved={(_item) => {
+                if (onMineSuccess) onMineSuccess();
+              }}
+            />
+          )}
 
           <footer className="mt-16 pt-8 border-t border-[#E7E2D8] dark:border-[#262930] text-center text-xs text-ink-graphite dark:text-ink-pewter font-mono">
             Sentence Mining: Select any word or phrase with your cursor to save it to your Vault.

@@ -10,20 +10,20 @@ export const ReaderPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [readerData, setReaderData] = useState<any | null>(null);
 
-  useEffect(() => {
+  const loadArticle = (isSilent = false) => {
     if (!id) {
       setError('Article ID is required.');
       setLoading(false);
       return;
     }
 
-    let isMounted = true;
-    setLoading(true);
+    if (!isSilent) {
+      setLoading(true);
+    }
     setError(null);
 
     api.articles.getReaderView(id)
       .then((res) => {
-        if (!isMounted) return;
         if (res.success && res.data) {
           setReaderData(res.data);
         } else {
@@ -31,16 +31,15 @@ export const ReaderPage: React.FC = () => {
         }
       })
       .catch((err) => {
-        if (!isMounted) return;
         setError(err.message || 'Network error while loading article.');
       })
       .finally(() => {
-        if (isMounted) setLoading(false);
+        setLoading(false);
       });
+  };
 
-    return () => {
-      isMounted = false;
-    };
+  useEffect(() => {
+    loadArticle();
   }, [id]);
 
   if (loading) {
@@ -76,6 +75,7 @@ export const ReaderPage: React.FC = () => {
     <WebReader
       article={readerData.article}
       paragraphs={readerData.paragraphs}
+      onMineSuccess={() => loadArticle(true)}
     />
   );
 };
