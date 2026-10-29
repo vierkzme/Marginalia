@@ -1,0 +1,73 @@
+PORTFOLIO SOURCE-AVAILABLE & ANTI-PLAGIARISM LICENSE
+====================================================
+
+Project Name : Contextual Reading & Idiom Vault
+Copyright (c) 2026 Ardy Nugroho (@vierkzme)
+GitHub Profile: https://github.com/vierkzme
+All Rights Reserved.
+
+-------------------------------------------------------------------------------
+1. OWNERSHIP & INTELLECTUAL PROPERTY
+-------------------------------------------------------------------------------
+This software, including its source code, system architecture, database schema,
+user interface design, algorithms, and documentation (collectively, the
+"Software"), is the original intellectual property of Ardy Nugroho (@vierkzme).
+
+-------------------------------------------------------------------------------
+2. PERMITTED USE (PORTFOLIO EVALUATION & INSPECTION ONLY)
+-------------------------------------------------------------------------------
+Permission is hereby granted, free of charge, to prospective employers,
+technical recruiters, internship evaluators, and peer reviewers to view, clone,
+and execute the Software locally strictly for the purpose of evaluating the
+technical skills and portfolio of the Copyright Holder, Ardy Nugroho (@vierkzme).
+
+-------------------------------------------------------------------------------
+3. STRICT PROHIBITIONS (ANTI-CLAIM & ANTI-PLAGIARISM CLAUSE)
+-------------------------------------------------------------------------------
+Without prior written permission from Ardy Nugroho (@vierkzme), NO person,
+organization, or entity is permitted to:
+
+  a) Claim Authorship or Misrepresent Origin:
+     You may NOT claim this Software (in whole or in part) as your own work,
+     nor submit it as your own internship project, academic assignment,
+     capstone project, competition entry, or personal portfolio piece.
+
+  b) Remove or Alter Attribution:
+     You may NOT remove, obscure, or modify any copyright notices, author
+     identifiers ("Ardy Nugroho" / "@vierkzme"), or license headers contained
+     within the Software.
+
+  c) Redistribute or Re-publish:
+     You may NOT publish, mirror, or upload copies or modified versions of this
+     Software to any public or private repository under another name or account.
+
+  d) Commercial Exploitation:
+     You may NOT sell, sublicense, host as a commercial service (SaaS), or
+     monetize the Software or any derivative works thereof.
+
+-------------------------------------------------------------------------------
+4. KETENTUAN HUKUM & LARANGAN KLAIM ULANG (BAHASA INDONESIA)
+-------------------------------------------------------------------------------
+Seluruh kode sumber, arsitektur sistem, desain antarmuka, dan dokumentasi dalam
+proyek "Contextual Reading & Idiom Vault" ini adalah hak cipta penuh milik:
+
+  Nama Pemilik : Ardy Nugroho
+  GitHub       : @vierkzme (https://github.com/vierkzme)
+
+DILARANG KERAS tanpa izin tertulis dari pemilik hak cipta untuk:
+  1. Mengklaim proyek ini (sebagian maupun seluruhnya) atas nama pribadi atau
+     pihak lain untuk keperluan portofolio, magang, tugas kuliah, maupun lomba.
+  2. Menghapus atau mengganti atribusi nama pemilik ("Ardy Nugroho" / "@vierkzme").
+  3. Mengunggah ulang (re-upload) kode sumber ini ke akun repositori lain
+     seolah-olah merupakan karya sendiri.
+  4. Memperjualbelikan atau menggunakan perangkat lunak ini secara komersial.
+
+-------------------------------------------------------------------------------
+5. DISCLAIMER OF WARRANTY
+-------------------------------------------------------------------------------
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHOR OR COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
