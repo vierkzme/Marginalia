@@ -16,8 +16,9 @@ export const LibraryPage: React.FC = () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const data = await api.articles.list();
-      setArticles(data || []);
+      const res: any = await api.articles.list();
+      const list = Array.isArray(res) ? res : res?.data || [];
+      setArticles(list);
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : 'Failed to load library.');
     } finally {

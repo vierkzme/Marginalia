@@ -31,12 +31,13 @@ export const ReviewPage: React.FC = () => {
     setSessionFinished(false);
 
     api.reviews.getDue()
-      .then((res) => {
-        if (res.success && Array.isArray(res.data?.cards)) {
-          setCards(res.data.cards);
+      .then((res: any) => {
+        const cards = res?.data?.cards || res?.cards || (Array.isArray(res?.data) ? res.data : []);
+        if (Array.isArray(cards)) {
+          setCards(cards);
           cardStartTimeRef.current = Date.now();
         } else {
-          setError(res.error || 'Failed to fetch due review cards.');
+          setError(res?.error || 'Failed to fetch due review cards.');
         }
       })
       .catch((err) => {

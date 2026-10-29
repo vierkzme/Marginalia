@@ -32,11 +32,12 @@ export const VaultPage: React.FC = () => {
     if (searchQuery.trim()) params.q = searchQuery.trim();
 
     api.vocab.listVault(params)
-      .then((res) => {
-        if (res.success && Array.isArray(res.data)) {
-          setItems(res.data);
+      .then((res: any) => {
+        const items = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+        if (Array.isArray(items)) {
+          setItems(items);
         } else {
-          setError(res.error || 'Failed to load vault items.');
+          setError(res?.error || 'Failed to load vault items.');
         }
       })
       .catch((err) => {

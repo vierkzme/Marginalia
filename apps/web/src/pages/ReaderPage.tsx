@@ -24,11 +24,12 @@ export const ReaderPage: React.FC = () => {
     setError(null);
 
     api.articles.getReaderView(id)
-      .then((res) => {
-        if (res.success && res.data) {
-          setReaderData(res.data);
+      .then((res: any) => {
+        const payload = res?.data || res;
+        if (payload && (payload.article || payload.paragraphs)) {
+          setReaderData(payload);
         } else {
-          setError(res.error || 'Failed to load article.');
+          setError(res?.error || 'Failed to load article.');
         }
       })
       .catch((err) => {

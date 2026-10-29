@@ -14,11 +14,12 @@ export const DashboardPage: React.FC = () => {
     setLoading(true);
     setError(null);
     api.analytics.getDashboard()
-      .then((res) => {
-        if (res.success && res.data) {
-          setDashboardData(res.data);
+      .then((res: any) => {
+        const data = res?.data || res;
+        if (data && data.streak && data.retentionDistribution) {
+          setDashboardData(data);
         } else {
-          setError(res.error || 'Failed to load dashboard metrics.');
+          setError(res?.error || 'Failed to load dashboard metrics.');
         }
       })
       .catch((err) => {

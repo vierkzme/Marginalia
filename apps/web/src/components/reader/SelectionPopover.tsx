@@ -44,10 +44,10 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
       selectionStartInSentence: selectionData.startOffset,
       selectionEndInSentence: selectionData.endOffset,
     })
-      .then((res) => {
+      .then((res: any) => {
         if (!isMounted) return;
-        if (res.success && res.data) {
-          const d = res.data;
+        const d = res?.data || res;
+        if (d && (d.lemma || d.surfaceForm || d.definition)) {
           setSurfaceForm(d.surfaceForm || selectionData.selectedText);
           setLemma(d.lemma || selectionData.selectedText.toLowerCase());
           setPartOfSpeech(d.partOfSpeech || 'expression');
@@ -104,14 +104,15 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
         tagNames: selectedTags,
       });
 
-      if (res.success && res.data) {
+      const savedPayload = res?.data || res;
+      if (savedPayload && (savedPayload.vocabItemId || savedPayload.id || savedPayload.lemma)) {
         setSavedSuccess(true);
         setTimeout(() => {
-          onSaved(res.data);
+          onSaved(savedPayload);
           onClose();
         }, 600);
       } else {
-        setError(res.error || 'Failed to save mined vocabulary.');
+        setError(res?.error || 'Failed to save mined vocabulary.');
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error saving to Vault.';

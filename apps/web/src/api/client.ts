@@ -45,7 +45,20 @@ export async function apiRequest<T = any>(
     throw new Error(errorMsg);
   }
 
-  return json.data;
+  // Ensure returned object satisfies both envelope structure ({ success: true, data })
+  // and direct unwrap consumers
+  let result: any = { success: true, data: json };
+  if (json && typeof json === 'object') {
+    if (json.data !== undefined) {
+      if (typeof json.data === 'object' && json.data !== null && !Array.isArray(json.data)) {
+        result = { success: true, ...json, data: json.data, ...json.data };
+      } else {
+        result = { success: true, ...json, data: json.data };
+      }
+    }
+  }
+
+  return result as T;
 }
 
 export const api = {
