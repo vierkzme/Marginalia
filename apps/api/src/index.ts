@@ -6,6 +6,7 @@ import { memoryStore } from './config/store';
 import authRouter from './modules/auth/auth.router';
 import articlesRouter from './modules/articles/articles.router';
 import vocabRouter from './modules/vocab/vocab.router';
+import reviewsRouter from './modules/reviews/reviews.router';
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/articles', articlesRouter);
 app.use('/api/v1/vocab', vocabRouter);
+app.use('/api/v1/reviews', reviewsRouter);
 
 app.get('/health', async (_req: Request, res: Response) => {
   const dbConnected = await isDatabaseConnected();
