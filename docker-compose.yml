@@ -5,7 +5,7 @@ services:
   # 1. Database Relasional PostgreSQL
   postgres:
     image: postgres:16-alpine
-    container_name: criv-postgres
+    container_name: marginalia-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-criv_user}
@@ -26,7 +26,7 @@ services:
     build:
       context: ./apps/nlp-service
       dockerfile: Dockerfile
-    container_name: criv-nlp-service
+    container_name: marginalia-nlp-service
     restart: unless-stopped
     environment:
       SPACY_MODEL: en_core_web_sm
@@ -44,7 +44,7 @@ services:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
-    container_name: criv-core-api
+    container_name: marginalia-core-api
     restart: unless-stopped
     depends_on:
       postgres:
@@ -67,7 +67,7 @@ services:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
-    container_name: criv-web-frontend
+    container_name: marginalia-web-frontend
     restart: unless-stopped
     depends_on:
       - api

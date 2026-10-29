@@ -1,6 +1,8 @@
-# Contextual Reading & Idiom Vault
+# Marginalia: Contextual Reading & Idiom Vault
 
-**Contextual Reading & Idiom Vault** adalah aplikasi pembaca artikel bebas distraksi (*distraction-free web reader*) dan manajemen kosakata yang menggabungkan metode **Sentence Mining** (mengumpulkan kosakata & idiom langsung dari bacaan nyata) dengan algoritma pengulangan berjarak **SuperMemo-2 (SM-2)**.
+> A distraction-free contextual reader and sentence-mining vault powered by spaCy NLP and SuperMemo-2 spaced repetition.
+
+**Marginalia** (Contextual Reading & Idiom Vault) adalah aplikasi pembaca artikel bebas distraksi (*distraction-free web reader*) dan manajemen kosakata yang menggabungkan metode **Sentence Mining** (mengumpulkan kosakata & idiom langsung dari bacaan nyata) dengan algoritma pengulangan berjarak **SuperMemo-2 (SM-2)**.
 
 Berbeda dengan aplikasi *flashcard* konvensional yang menghafal kata secara terpisah, aplikasi ini mengikat setiap kata atau idiom dengan kalimat asli tempat kata tersebut pertama kali ditemukan, sehingga pengguna memahami nuansa makna, tata bahasa, dan kolokasinya secara utuh.
 

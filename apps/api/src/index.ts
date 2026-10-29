@@ -59,7 +59,7 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(ENV.PORT, () => {
-    console.log(`Contextual Reading & Idiom Vault API listening on port ${ENV.PORT}`);
+    console.log(`Marginalia API listening on port ${ENV.PORT}`);
   });
 }
 

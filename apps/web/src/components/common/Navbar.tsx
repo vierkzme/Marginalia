@@ -36,8 +36,8 @@ export const Navbar: React.FC = () => {
               <span className="font-mono text-xs font-semibold px-1.5 py-0.5 rounded bg-paper-cream dark:bg-ink-elevated text-editorial-rust dark:text-editorial-orange border border-[#E7E2D8] dark:border-[#262930]">
                 01
               </span>
-              <span className="font-serif text-lg font-bold tracking-tight">
-                Contextual Reading <span className="font-sans text-xs font-normal text-ink-graphite dark:text-ink-pewter">&amp; Vault</span>
+              <span className="font-serif text-xl font-bold tracking-tight">
+                Marginalia <span className="font-sans text-xs font-normal text-ink-graphite dark:text-ink-pewter">Vault</span>
               </span>
             </NavLink>
 

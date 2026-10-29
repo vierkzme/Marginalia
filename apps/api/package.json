@@ -1,7 +1,7 @@
 {
   "name": "@criv/api",
   "version": "1.0.0",
-  "description": "Core Backend API for Contextual Reading & Idiom Vault",
+  "description": "Core Backend API for Marginalia: Contextual Reading & Idiom Vault",
   "author": "Ardy Nugroho",
   "license": "SEE LICENSE IN LICENSE",
   "main": "dist/index.js",
