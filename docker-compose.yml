@@ -1,0 +1,80 @@
+# docker-compose.yml
+version: "3.9"
+
+services:
+  # 1. Database Relasional PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: criv-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-criv_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-criv_secret_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-contextual_reading_vault}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-criv_user} -d ${POSTGRES_DB:-contextual_reading_vault}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # 2. NLP Microservice (Python + FastAPI + spaCy)
+  nlp-service:
+    build:
+      context: ./apps/nlp-service
+      dockerfile: Dockerfile
+    container_name: criv-nlp-service
+    restart: unless-stopped
+    environment:
+      SPACY_MODEL: en_core_web_sm
+      PORT: 8000
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/nlp/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 3. Core Backend API (Node.js + Express.js + Prisma)
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: criv-core-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nlp-service:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-criv_user}:${POSTGRES_PASSWORD:-criv_secret_pass}@postgres:5432/${POSTGRES_DB:-contextual_reading_vault}?schema=public
+      NLP_SERVICE_URL: http://nlp-service:8000
+      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_change_in_prod}
+      FREE_DICTIONARY_API_URL: https://api.dictionaryapi.dev/api/v2/entries/en
+      AI_FALLBACK_API_KEY: ${AI_FALLBACK_API_KEY:-}
+    ports:
+      - "4000:4000"
+
+  # 4. Frontend Web App (ReactJS + Vite + Tailwind CSS)
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: criv-web-frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      VITE_API_BASE_URL: http://localhost:4000/api/v1
+    ports:
+      - "5173:80"
+
+volumes:
+  pgdata:
