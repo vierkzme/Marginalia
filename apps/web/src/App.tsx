@@ -16,6 +16,7 @@ export const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<LibraryPage />} />
             <Route path="/reader/:articleId" element={<ReaderPage />} />
+            <Route path="/reader/:id" element={<ReaderPage />} />
             <Route path="/review" element={<ReviewPage />} />
             <Route path="/vault" element={<VaultPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />

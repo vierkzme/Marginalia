@@ -5,7 +5,8 @@ import { WebReader } from '../components/reader/WebReader';
 import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 
 export const ReaderPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { articleId, id: paramId } = useParams<{ articleId?: string; id?: string }>();
+  const id = articleId || paramId;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [readerData, setReaderData] = useState<any | null>(null);
