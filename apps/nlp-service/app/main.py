@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
+from .routers.nlp_router import router as nlp_router
 
 app = FastAPI(
     title="CRIV NLP Microservice",
@@ -15,6 +16,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(nlp_router)
 
 @app.get("/nlp/v1/health")
 def health_check():
