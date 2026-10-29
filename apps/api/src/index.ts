@@ -4,6 +4,7 @@ import { ENV } from './config/env';
 import { isDatabaseConnected } from './config/db';
 import { memoryStore } from './config/store';
 import authRouter from './modules/auth/auth.router';
+import articlesRouter from './modules/articles/articles.router';
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/articles', articlesRouter);
 
 app.get('/health', async (_req: Request, res: Response) => {
   const dbConnected = await isDatabaseConnected();
