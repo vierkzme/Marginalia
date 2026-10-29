@@ -4,6 +4,12 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 dotenv.config();
 
+// Ensure process.env.DATABASE_URL is populated for Prisma engine fallback
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL =
+    'postgresql://criv_user:criv_secret_pass@localhost:5432/contextual_reading_vault?schema=public';
+}
+
 export const ENV = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: parseInt(process.env.PORT || '4000', 10),

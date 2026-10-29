@@ -9,18 +9,35 @@ declare global {
 export const prisma =
   global.__prisma ||
   new PrismaClient({
-    log: ENV.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+    datasources: {
+      db: {
+        url: ENV.DATABASE_URL,
+      },
+    },
+    log: ENV.NODE_ENV === 'test' ? [] : ['warn'],
   });
 
 if (ENV.NODE_ENV !== 'production') {
   global.__prisma = prisma;
 }
 
+let hasLoggedStoreMode = false;
+
 export async function isDatabaseConnected(): Promise<boolean> {
   try {
     await prisma.$queryRaw`SELECT 1`;
+    if (!hasLoggedStoreMode) {
+      console.log('[Database] PostgreSQL connected successfully on port 5432.');
+      hasLoggedStoreMode = true;
+    }
     return true;
   } catch {
+    if (!hasLoggedStoreMode) {
+      console.log(
+        '[Store] PostgreSQL offline on localhost:5432 -> Running in Dual-Mode Local Seeded Vault.'
+      );
+      hasLoggedStoreMode = true;
+    }
     return false;
   }
 }
