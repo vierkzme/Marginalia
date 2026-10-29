@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { z } from 'zod';
 import { AuthenticatedRequest } from '../../middlewares/auth.middleware';
 import { importArticle, listArticles } from './importer.service';
+import { getArticleReaderView } from './reader-view.service';
 
 const ImportBodySchema = z.object({
   sourceType: z.enum(['RAW_TEXT', 'URL', 'TXT_FILE', 'SRT_FILE']),
@@ -70,6 +71,26 @@ export async function handleGetArticles(req: AuthenticatedRequest, res: Response
     res.status(500).json({
       success: false,
       error: { code: 'LIST_ERROR', message },
+    });
+  }
+}
+
+export async function handleGetReaderView(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const userId = req.user?.id || '00000000-0000-0000-0000-000000000001';
+  const articleId = req.params.articleId;
+
+  try {
+    const readerView = await getArticleReaderView(userId, articleId);
+    res.json({
+      success: true,
+      data: readerView,
+      meta: { timestamp: new Date().toISOString() },
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to load reader view.';
+    res.status(404).json({
+      success: false,
+      error: { code: 'NOT_FOUND', message },
     });
   }
 }
