@@ -6,6 +6,7 @@ import { SmartHighlightedSentence, SentenceHighlight } from './SmartHighlightedS
 import { useTextSelection } from '../../hooks/useTextSelection';
 import { SelectionPopover } from './SelectionPopover';
 import { BauhausHeaderArt } from '../common/BauhausHeaderArt';
+import { getReaderPreferences, setReaderPreferences } from '../../api/client';
 
 export interface WebReaderProps {
   article: {
@@ -40,10 +41,21 @@ export const WebReader: React.FC<WebReaderProps> = ({
   const navigate = useNavigate();
   const readerContentRef = useRef<HTMLDivElement>(null);
   const { selectionData, clearSelection } = useTextSelection(readerContentRef);
-  const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl'>('lg');
-  const [readingTheme, setReadingTheme] = useState<'light' | 'sepia' | 'dark'>('light');
+  const initialPrefs = getReaderPreferences();
+  const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl'>(initialPrefs.fontSize);
+  const [readingTheme, setReadingTheme] = useState<'light' | 'sepia' | 'dark'>(initialPrefs.readingTheme);
   const [isLedgerOpen, setIsLedgerOpen] = useState(false);
   const [inspectedWord, setInspectedWord] = useState<SentenceHighlight | null>(null);
+
+  const handleChangeFontSize = (sz: 'sm' | 'base' | 'lg' | 'xl') => {
+    setFontSize(sz);
+    setReaderPreferences({ fontSize: sz, readingTheme });
+  };
+
+  const handleChangeTheme = (theme: 'light' | 'sepia' | 'dark') => {
+    setReadingTheme(theme);
+    setReaderPreferences({ fontSize, readingTheme: theme });
+  };
 
   const allHighlights = paragraphs.flatMap((p) => p.sentences.flatMap((s) => s.highlights));
   const uniqueHighlights = Array.from(
@@ -135,7 +147,7 @@ export const WebReader: React.FC<WebReaderProps> = ({
                     <button
                       key={sz}
                       type="button"
-                      onClick={() => setFontSize(sz)}
+                      onClick={() => handleChangeFontSize(sz)}
                       aria-pressed={fontSize === sz}
                       className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-bold transition-colors ${
                         fontSize === sz
@@ -160,7 +172,7 @@ export const WebReader: React.FC<WebReaderProps> = ({
                     <button
                       key={theme}
                       type="button"
-                      onClick={() => setReadingTheme(theme)}
+                      onClick={() => handleChangeTheme(theme)}
                       aria-pressed={readingTheme === theme}
                       className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-bold transition-colors ${
                         readingTheme === theme

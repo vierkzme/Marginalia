@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { api } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import { ArticleImporterModal } from '../components/importer/ArticleImporterModal';
 import { CoverageBadge } from '../components/importer/CoverageBadge';
 import { BauhausHeaderArt, getBauhausVariant } from '../components/common/BauhausHeaderArt';
@@ -19,13 +20,14 @@ type LibraryFilter = 'ALL' | 'OPTIMAL' | 'URL' | 'RAW_TEXT' | 'FILE';
 
 export const LibraryPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [articles, setArticles] = useState<any[]>([]);
-  const [userFirstName, setUserFirstName] = useState<string>('Raka');
+  const userFirstName = user?.fullName ? user.fullName.split(' ')[0] : 'Reader';
   const [dailyStats, setDailyStats] = useState({
     todayCompletedReviews: 0,
     todayWordsMined: 0,
     dueCardsCount: 0,
-    vocabTotal: 7,
+    vocabTotal: 0,
   });
 
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -38,9 +40,8 @@ export const LibraryPage: React.FC = () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const [articlesRes, meRes, dashRes, dueRes]: any[] = await Promise.allSettled([
+      const [articlesRes, dashRes, dueRes]: any[] = await Promise.allSettled([
         api.articles.list(),
-        api.auth.me(),
         api.analytics.getDashboard(),
         api.reviews.getDue(),
       ]);
@@ -53,18 +54,11 @@ export const LibraryPage: React.FC = () => {
         throw new Error(articlesRes.reason?.message || 'Failed to load library.');
       }
 
-      if (meRes.status === 'fulfilled') {
-        const user = meRes.value?.data || meRes.value;
-        if (user?.fullName) {
-          setUserFirstName(String(user.fullName).split(' ')[0]);
-        }
-      }
-
       const nextStats = {
         todayCompletedReviews: 0,
         todayWordsMined: 0,
         dueCardsCount: 0,
-        vocabTotal: 7,
+        vocabTotal: 0,
       };
 
       if (dashRes.status === 'fulfilled') {
