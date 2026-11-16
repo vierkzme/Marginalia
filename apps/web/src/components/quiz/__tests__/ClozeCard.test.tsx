@@ -67,7 +67,7 @@ describe('ClozeCard Component', () => {
     expect(screen.getByRole('button', { name: /Show Answer/i })).toBeInTheDocument();
   });
 
-  it('switches sentence context when clicking Lihat Kalimat Lain', () => {
+  it('switches sentence context when clicking Switch Context', () => {
     const handleFlip = vi.fn();
     const handleGrade = vi.fn();
 
@@ -80,7 +80,7 @@ describe('ClozeCard Component', () => {
       />
     );
 
-    const switchBtn = screen.getByRole('button', { name: /Lihat Kalimat Lain/i });
+    const switchBtn = screen.getByRole('button', { name: /Switch Context/i });
     expect(switchBtn).toBeInTheDocument();
 
     fireEvent.click(switchBtn);
@@ -102,7 +102,7 @@ describe('ClozeCard Component', () => {
       />
     );
 
-    const hintBtn = screen.getByRole('button', { name: /Hint Huruf Awal/i });
+    const hintBtn = screen.getByRole('button', { name: /First-Letter Hint/i });
     fireEvent.click(hintBtn);
 
     expect(screen.getByText('b__ t__ b_____')).toBeInTheDocument();

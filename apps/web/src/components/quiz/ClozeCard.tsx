@@ -254,8 +254,8 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
                 )}
                 <span>
                   {typeFeedback === 'correct'
-                    ? 'Tepat! Jawaban Anda sesuai.'
-                    : `Anda mengetik "${typedAnswer}". Target: "${card.lemma}".`}
+                    ? 'Correct! Your answer matches.'
+                    : `You typed "${typedAnswer}". Target: "${card.lemma}".`}
                 </span>
               </div>
             )}
@@ -276,7 +276,7 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
 
               {card.personalNote && (
                 <div className="pt-2 text-xs text-violet-brand dark:text-violet-bright font-mono font-semibold flex items-start gap-1">
-                  <span>Catatan:</span>
+                  <span>Note:</span>
                   <span>{card.personalNote}</span>
                 </div>
               )}

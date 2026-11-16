@@ -124,7 +124,7 @@ export const SM2GradeButtons: React.FC<SM2GradeButtonsProps> = ({
         </button>
       </div>
       <p className="text-center font-mono text-[11px] font-semibold text-ink-muted dark:text-ink-pewter mt-2.5">
-        Shortcut: Tekan tombol 1, 2, 3, atau 4 pada keyboard.
+        Shortcut: Press keys 1, 2, 3, or 4 on your keyboard.
       </p>
     </div>
   );

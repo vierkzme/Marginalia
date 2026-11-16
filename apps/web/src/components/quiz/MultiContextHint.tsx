@@ -59,7 +59,7 @@ export const MultiContextHint: React.FC<MultiContextHintProps> = ({
           >
             <Layers className="w-3.5 h-3.5 text-violet-brand dark:text-violet-bright" aria-hidden="true" />
             <span>
-              Lihat Kalimat Lain ({currentIndex + 1}/{contextsCount})
+              Switch Context ({currentIndex + 1}/{contextsCount})
             </span>
             <kbd className="ml-1 px-1.5 py-0.5 rounded-full bg-canvas-cream dark:bg-ink-dark border border-[#141413]/20 text-[10px]">
               H
@@ -81,7 +81,7 @@ export const MultiContextHint: React.FC<MultiContextHintProps> = ({
             title="Press L to reveal first-letter hint"
           >
             <Lightbulb className="w-3.5 h-3.5 text-amber-600" aria-hidden="true" />
-            <span>Hint Huruf Awal</span>
+            <span>First-Letter Hint</span>
             <kbd className="ml-1 px-1.5 py-0.5 rounded-full bg-canvas-cream dark:bg-ink-dark border border-[#141413]/20 text-[10px]">
               L
             </kbd>
