@@ -1,4 +1,5 @@
 import React from 'react';
+import { Star } from 'lucide-react';
 
 export interface CoverageProps {
   percentage: number;
@@ -27,88 +28,88 @@ export const CoverageBadge: React.FC<CoverageProps> = ({
     switch (difficultyTier) {
       case 'OPTIMAL':
         return {
-          pillBg: 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
-          dotBg: 'bg-emerald-600 dark:bg-emerald-400',
-          tierLabel: 'Optimal for Mining',
+          pillBg: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-200 border-[#141413]/20 dark:border-emerald-700',
+          starColor: 'text-emerald-600 fill-emerald-500',
+          tierLabel: 'Optimal Input',
         };
       case 'CHALLENGING':
         return {
-          pillBg: 'bg-amber-100 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 border-amber-300 dark:border-amber-800',
-          dotBg: 'bg-amber-600 dark:bg-amber-400',
-          tierLabel: 'Challenging Read',
+          pillBg: 'bg-violet-soft dark:bg-violet-darkSoft text-violet-brand dark:text-violet-bright border-[#141413]/15 dark:border-violet-brand/40',
+          starColor: 'text-amber-500 fill-amber-400',
+          tierLabel: 'Challenging',
         };
       case 'HEAVY':
       default:
         return {
-          pillBg: 'bg-rose-100 dark:bg-rose-950/40 text-rose-900 dark:text-rose-300 border-rose-300 dark:border-rose-800',
-          dotBg: 'bg-rose-600 dark:bg-rose-400',
-          tierLabel: 'Heavy Lexical Load',
+          pillBg: 'bg-rose-100 dark:bg-rose-950/60 text-rose-900 dark:text-rose-200 border-[#141413]/20 dark:border-rose-800',
+          starColor: 'text-rose-500 fill-rose-400',
+          tierLabel: 'Heavy Load',
         };
     }
   };
 
-  const { pillBg, dotBg, tierLabel } = getTierDetails();
+  const { pillBg, starColor, tierLabel } = getTierDetails();
 
   if (size === 'sm') {
     return (
-      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-mono font-medium rounded border ${pillBg}`}>
-        <span className={`w-1.5 h-1.5 rounded-full ${dotBg}`} aria-hidden="true" />
-        {rounded}% Coverage
+      <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#141413] dark:text-ink-ivory font-mono">
+        <Star className={`w-3.5 h-3.5 ${starColor}`} aria-hidden="true" />
+        <span>{rounded}%</span>
       </span>
     );
   }
 
   return (
-    <div className="rounded-lg border border-[#E7E2D8] dark:border-[#262930] bg-paper-cream/60 dark:bg-ink-elevated/60 p-4">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-medium rounded border ${pillBg}`}>
-            <span className={`w-2 h-2 rounded-full ${dotBg}`} aria-hidden="true" />
+    <div className="brutal-card-sm bg-violet-tint dark:bg-ink-elevated p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2.5">
+          <span className={`inline-flex items-center px-3 py-0.5 text-[11px] font-extrabold uppercase tracking-wider rounded-full border ${pillBg}`}>
             {tierLabel}
           </span>
-          <span className="font-mono text-sm font-semibold">{percentage.toFixed(1)}%</span>
+          <span className="inline-flex items-center gap-1 font-mono text-sm font-extrabold text-[#141413] dark:text-ink-ivory">
+            <Star className={`w-4 h-4 ${starColor}`} aria-hidden="true" />
+            {percentage.toFixed(1)}%
+          </span>
         </div>
-        <span className="text-xs text-ink-graphite dark:text-ink-pewter font-mono">
-          95%+ target for flow state
+        <span className="text-[11px] text-ink-muted dark:text-ink-pewter font-mono font-semibold uppercase tracking-wider">
+          95%+ Sweet Spot
         </span>
       </div>
 
-      <div className="w-full bg-[#E7E2D8] dark:bg-[#262930] h-2.5 rounded-full overflow-hidden flex mb-2">
+      <div className="w-full bg-white dark:bg-ink-dark h-3 rounded-full border-2 border-[#141413] dark:border-[#3A3E4C] overflow-hidden flex mb-3">
         <div
-          className="bg-emerald-600 dark:bg-emerald-500 h-full transition-all duration-300"
+          className="bg-violet-brand dark:bg-violet-bright h-full transition-all duration-300"
           style={{ width: `${Math.min(100, percentage)}%` }}
           aria-label={`Coverage gauge: ${percentage}%`}
         />
       </div>
 
       {summaryMessage && (
-        <p className="text-xs text-ink-graphite dark:text-ink-pewter font-medium mb-3">
+        <p className="text-xs text-[#141413] dark:text-ink-ivory font-semibold mb-3">
           {summaryMessage}
         </p>
       )}
 
       {(knownLemmasCount !== undefined || learningLemmasCount !== undefined) && (
-        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-[#E7E2D8] dark:border-[#262930] text-xs font-mono">
+        <div className="flex flex-wrap items-center gap-3 pt-2.5 border-t border-[#141413]/15 dark:border-[#3A3E4C] text-xs font-mono">
           {knownLemmasCount !== undefined && (
-            <span className="text-ink-charcoal dark:text-ink-ivory">
-              <strong>{knownLemmasCount}</strong> Dikuasai
+            <span className="px-2 py-0.5 rounded-full bg-white dark:bg-ink-surface border border-[#141413]/20 text-[#141413] dark:text-ink-ivory">
+              <strong>{knownLemmasCount}</strong> Known
             </span>
           )}
           {learningLemmasCount !== undefined && (
-            <span className="text-amber-800 dark:text-amber-300 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-sm bg-amber-400 inline-block" />
+            <span className="px-2 py-0.5 rounded-full bg-marker-learning text-[#141413] border border-marker-learningBorder inline-flex items-center gap-1 font-bold">
               <strong>{learningLemmasCount}</strong> Learning
             </span>
           )}
           {leechLemmasCount !== undefined && leechLemmasCount > 0 && (
-            <span className="text-rose-800 dark:text-rose-300 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-sm bg-rose-400 inline-block" />
+            <span className="px-2 py-0.5 rounded-full bg-marker-leech text-[#4C0519] border border-marker-leechBorder inline-flex items-center gap-1 font-bold">
               <strong>{leechLemmasCount}</strong> Leech
             </span>
           )}
           {unknownLemmasCount !== undefined && (
-            <span className="text-ink-graphite dark:text-ink-pewter">
-              <strong>{unknownLemmasCount}</strong> New / Target
+            <span className="text-ink-muted dark:text-ink-pewter font-semibold">
+              <strong>{unknownLemmasCount}</strong> New Target
             </span>
           )}
         </div>

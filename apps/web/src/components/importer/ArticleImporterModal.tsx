@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, FileText, Link, UploadCloud, Loader2 } from 'lucide-react';
+import { X, FileText, Link as LinkIcon, UploadCloud, Loader2 } from 'lucide-react';
 import { api } from '../../api/client';
 import { CoverageBadge } from './CoverageBadge';
 
@@ -83,78 +83,97 @@ export const ArticleImporterModal: React.FC<ArticleImporterModalProps> = ({
     }
   };
 
+  const tabClass = (isActive: boolean) =>
+    `brutal-pill-btn px-3.5 py-1.5 text-xs font-bold flex items-center gap-1.5 ${
+      isActive
+        ? 'bg-violet-brand text-white'
+        : 'bg-white dark:bg-ink-surface text-[#141413] dark:text-ink-ivory hover:bg-violet-tint dark:hover:bg-ink-elevated'
+    }`;
+
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="importer-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#141413]/50 backdrop-blur-xs"
+      onClick={() => {
+        handleReset();
+        onClose();
+      }}
     >
-      <div className="w-full max-w-2xl bg-paper-light dark:bg-ink-dark rounded-lg border border-[#E7E2D8] dark:border-[#262930] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E7E2D8] dark:border-[#262930]">
-          <h2 id="importer-modal-title" className="font-serif text-xl font-bold text-ink-charcoal dark:text-ink-ivory">
-            Import New Reading Material
-          </h2>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-2xl rounded-3xl border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated shadow-brutal-lg dark:shadow-brutal-dark overflow-hidden flex flex-col max-h-[90vh]"
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b-2 border-[#141413] dark:border-[#3A3E4C] bg-canvas-cream dark:bg-ink-surface">
+          <div>
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-violet-brand dark:text-violet-bright block">
+              Sentence Mining Importer
+            </span>
+            <h2 id="importer-modal-title" className="font-sans text-xl font-extrabold tracking-tight text-[#141413] dark:text-ink-ivory">
+              Import Reading Material
+            </h2>
+          </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => {
+              handleReset();
+              onClose();
+            }}
             aria-label="Close dialog"
-            className="p-1 rounded text-ink-graphite hover:text-ink-charcoal dark:text-ink-pewter dark:hover:text-ink-ivory"
+            className="brutal-pill-btn p-2 bg-white dark:bg-ink-elevated text-[#141413] dark:text-ink-ivory hover:bg-rose-50"
           >
-            <X className="w-5 h-5" aria-hidden="true" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
-        <div className="px-6 pt-4">
-          <div className="flex items-center gap-2 border-b border-[#E7E2D8] dark:border-[#262930]" role="tablist">
+        <div className="px-6 pt-4 pb-3 border-b border-[#141413]/15 dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated">
+          <div className="flex flex-wrap items-center gap-2.5" role="tablist" aria-label="Import source type">
             <button
               type="button"
               role="tab"
               aria-selected={activeTab === 'RAW_TEXT'}
-              onClick={() => { setActiveTab('RAW_TEXT'); setErrorMsg(null); }}
-              className={`pb-3 px-3 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors ${
-                activeTab === 'RAW_TEXT'
-                  ? 'border-editorial-rust text-editorial-rust dark:border-editorial-orange dark:text-editorial-orange font-semibold'
-                  : 'border-transparent text-ink-graphite hover:text-ink-charcoal dark:text-ink-pewter dark:hover:text-ink-ivory'
-              }`}
+              onClick={() => {
+                setActiveTab('RAW_TEXT');
+                setErrorMsg(null);
+              }}
+              className={tabClass(activeTab === 'RAW_TEXT')}
             >
-              <FileText className="w-4 h-4" />
-              Paste Text
+              <FileText className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Paste Text</span>
             </button>
             <button
               type="button"
               role="tab"
               aria-selected={activeTab === 'URL'}
-              onClick={() => { setActiveTab('URL'); setErrorMsg(null); }}
-              className={`pb-3 px-3 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors ${
-                activeTab === 'URL'
-                  ? 'border-editorial-rust text-editorial-rust dark:border-editorial-orange dark:text-editorial-orange font-semibold'
-                  : 'border-transparent text-ink-graphite hover:text-ink-charcoal dark:text-ink-pewter dark:hover:text-ink-ivory'
-              }`}
+              onClick={() => {
+                setActiveTab('URL');
+                setErrorMsg(null);
+              }}
+              className={tabClass(activeTab === 'URL')}
             >
-              <Link className="w-4 h-4" />
-              Extract from URL
+              <LinkIcon className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Extract from URL</span>
             </button>
             <button
               type="button"
               role="tab"
               aria-selected={activeTab === 'FILE'}
-              onClick={() => { setActiveTab('FILE'); setErrorMsg(null); }}
-              className={`pb-3 px-3 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors ${
-                activeTab === 'FILE'
-                  ? 'border-editorial-rust text-editorial-rust dark:border-editorial-orange dark:text-editorial-orange font-semibold'
-                  : 'border-transparent text-ink-graphite hover:text-ink-charcoal dark:text-ink-pewter dark:hover:text-ink-ivory'
-              }`}
+              onClick={() => {
+                setActiveTab('FILE');
+                setErrorMsg(null);
+              }}
+              className={tabClass(activeTab === 'FILE')}
             >
-              <UploadCloud className="w-4 h-4" />
-              Upload .txt / .srt
+              <UploadCloud className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Upload .txt / .srt</span>
             </button>
           </div>
         </div>
 
-        <div className="p-6 overflow-y-auto flex-1">
+        <div className="p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
           {errorMsg && (
-            <div className="mb-4 p-3 rounded bg-rose-100 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 text-sm">
+            <div className="p-3.5 rounded-2xl bg-rose-100 dark:bg-rose-950/60 border-2 border-[#141413] dark:border-rose-700 text-rose-950 dark:text-rose-200 text-xs font-bold">
               {errorMsg}
             </div>
           )}
@@ -162,7 +181,7 @@ export const ArticleImporterModal: React.FC<ArticleImporterModalProps> = ({
           {!importedData ? (
             <form id="importer-form" onSubmit={handleImportSubmit} className="space-y-4">
               <div>
-                <label htmlFor="import-title" className="block text-xs font-mono uppercase tracking-wider text-ink-graphite dark:text-ink-pewter mb-1">
+                <label htmlFor="import-title" className="block text-xs font-extrabold uppercase tracking-wider text-ink-muted dark:text-ink-pewter mb-1.5">
                   Article Title (Optional)
                 </label>
                 <input
@@ -171,30 +190,30 @@ export const ArticleImporterModal: React.FC<ArticleImporterModalProps> = ({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Distributed Systems Architecture & Failures"
-                  className="w-full px-3 py-2 text-sm rounded border border-[#E7E2D8] dark:border-[#262930] bg-white dark:bg-ink-elevated text-ink-charcoal dark:text-ink-ivory focus:ring-1 focus:ring-editorial-rust"
+                  className="brutal-input w-full px-4 py-2.5 text-sm rounded-2xl"
                 />
               </div>
 
               {activeTab === 'RAW_TEXT' && (
                 <div>
-                  <label htmlFor="import-raw-text" className="block text-xs font-mono uppercase tracking-wider text-ink-graphite dark:text-ink-pewter mb-1">
+                  <label htmlFor="import-raw-text" className="block text-xs font-extrabold uppercase tracking-wider text-ink-muted dark:text-ink-pewter mb-1.5">
                     Article Text *
                   </label>
                   <textarea
                     id="import-raw-text"
                     required
-                    rows={8}
+                    rows={7}
                     value={rawText}
                     onChange={(e) => setRawText(e.target.value)}
                     placeholder="Paste your English article paragraphs here..."
-                    className="w-full px-3 py-2 text-sm font-serif leading-relaxed rounded border border-[#E7E2D8] dark:border-[#262930] bg-white dark:bg-ink-elevated text-ink-charcoal dark:text-ink-ivory focus:ring-1 focus:ring-editorial-rust"
+                    className="brutal-input w-full px-4 py-3 text-sm font-serif leading-relaxed rounded-2xl"
                   />
                 </div>
               )}
 
               {activeTab === 'URL' && (
                 <div>
-                  <label htmlFor="import-url" className="block text-xs font-mono uppercase tracking-wider text-ink-graphite dark:text-ink-pewter mb-1">
+                  <label htmlFor="import-url" className="block text-xs font-extrabold uppercase tracking-wider text-ink-muted dark:text-ink-pewter mb-1.5">
                     Public Web Article URL *
                   </label>
                   <input
@@ -204,9 +223,9 @@ export const ArticleImporterModal: React.FC<ArticleImporterModalProps> = ({
                     value={sourceUrl}
                     onChange={(e) => setSourceUrl(e.target.value)}
                     placeholder="https://engineering.example.com/blog/distributed-consensus"
-                    className="w-full px-3 py-2 text-sm rounded border border-[#E7E2D8] dark:border-[#262930] bg-white dark:bg-ink-elevated text-ink-charcoal dark:text-ink-ivory focus:ring-1 focus:ring-editorial-rust"
+                    className="brutal-input w-full px-4 py-2.5 text-sm rounded-2xl"
                   />
-                  <p className="text-xs text-ink-graphite dark:text-ink-pewter mt-1">
+                  <p className="text-xs text-ink-muted dark:text-ink-pewter mt-2 font-medium">
                     Uses Mozilla Readability to strip ads, navigation headers, and sidebars automatically.
                   </p>
                 </div>
@@ -214,19 +233,19 @@ export const ArticleImporterModal: React.FC<ArticleImporterModalProps> = ({
 
               {activeTab === 'FILE' && (
                 <div>
-                  <label htmlFor="import-file" className="block text-xs font-mono uppercase tracking-wider text-ink-graphite dark:text-ink-pewter mb-1">
+                  <label htmlFor="import-file" className="block text-xs font-extrabold uppercase tracking-wider text-ink-muted dark:text-ink-pewter mb-1.5">
                     Select .txt or .srt file *
                   </label>
-                  <div className="border-2 border-dashed border-[#E7E2D8] dark:border-[#262930] rounded-lg p-6 text-center hover:bg-paper-cream/50 dark:hover:bg-ink-elevated/50 transition-colors">
+                  <div className="border-2 border-dashed border-[#141413] dark:border-[#3A3E4C] rounded-2xl p-6 text-center bg-canvas-cream/70 dark:bg-ink-surface">
                     <input
                       id="import-file"
                       type="file"
                       accept=".txt,.srt"
                       required
                       onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                      className="block w-full text-sm text-ink-graphite dark:text-ink-pewter file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-paper-cream dark:file:bg-ink-elevated file:text-ink-charcoal dark:file:text-ink-ivory hover:file:bg-editorial-rust hover:file:text-white file:transition-colors cursor-pointer"
+                      className="block w-full text-sm text-[#141413] dark:text-ink-ivory file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-2 file:border-[#141413] file:text-xs file:font-bold file:bg-white file:text-[#141413] hover:file:bg-violet-brand hover:file:text-white file:transition-colors cursor-pointer"
                     />
-                    <p className="text-xs text-ink-graphite dark:text-ink-pewter mt-2">
+                    <p className="text-xs text-ink-muted dark:text-ink-pewter mt-3 font-medium">
                       SRT files automatically have timestamps, line numbers, and HTML tags stripped.
                     </p>
                   </div>
@@ -235,17 +254,20 @@ export const ArticleImporterModal: React.FC<ArticleImporterModalProps> = ({
             </form>
           ) : (
             <div className="space-y-4">
-              <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-                <h3 className="font-serif text-lg font-bold text-emerald-900 dark:text-emerald-200">
+              <div className="brutal-card-sm p-4 bg-violet-tint dark:bg-ink-surface">
+                <span className="inline-block px-2.5 py-0.5 rounded-full bg-violet-soft text-violet-brand text-[10px] font-extrabold uppercase tracking-wider mb-1.5">
+                  {importedData.sourceType}
+                </span>
+                <h3 className="font-sans text-lg font-extrabold text-[#141413] dark:text-ink-ivory">
                   {importedData.title}
                 </h3>
-                <p className="text-xs text-ink-graphite dark:text-ink-pewter font-mono mt-1">
-                  Source: {importedData.sourceType} • {importedData.totalWordCount} Words • {importedData.uniqueLemmaCount} Unique Lemmas
+                <p className="text-xs text-ink-muted dark:text-ink-pewter font-mono mt-1">
+                  {importedData.totalWordCount} Words • {importedData.uniqueLemmaCount} Unique Lemmas
                 </p>
               </div>
 
-              <div className="space-y-1">
-                <h4 className="text-xs font-mono uppercase tracking-wider text-ink-graphite dark:text-ink-pewter">
+              <div className="space-y-2">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-ink-muted dark:text-ink-pewter">
                   Pre-Reading Text Coverage Analysis
                 </h4>
                 <CoverageBadge
@@ -262,11 +284,14 @@ export const ArticleImporterModal: React.FC<ArticleImporterModalProps> = ({
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#E7E2D8] dark:border-[#262930] bg-paper-cream/30 dark:bg-ink-elevated/30">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t-2 border-[#141413] dark:border-[#3A3E4C] bg-canvas-cream dark:bg-ink-surface">
           <button
             type="button"
-            onClick={() => { handleReset(); onClose(); }}
-            className="px-4 py-2 text-sm font-medium rounded border border-[#E7E2D8] dark:border-[#262930] text-ink-graphite hover:text-ink-charcoal dark:text-ink-pewter dark:hover:text-ink-ivory hover:bg-paper-cream dark:hover:bg-ink-elevated transition-colors"
+            onClick={() => {
+              handleReset();
+              onClose();
+            }}
+            className="brutal-pill-btn px-5 py-2 text-xs font-bold bg-white dark:bg-ink-elevated text-[#141413] dark:text-ink-ivory hover:bg-paper-cream"
           >
             Cancel
           </button>
@@ -276,10 +301,10 @@ export const ArticleImporterModal: React.FC<ArticleImporterModalProps> = ({
               type="submit"
               form="importer-form"
               disabled={isLoading}
-              className="px-4 py-2 text-sm font-medium rounded bg-editorial-rust hover:bg-editorial-rust/90 dark:bg-editorial-orange dark:hover:bg-editorial-orange/90 text-white flex items-center gap-2 transition-colors disabled:opacity-50"
+              className="brutal-pill-btn px-5 py-2 text-xs font-extrabold bg-violet-brand hover:bg-violet-hover text-white inline-flex items-center gap-2 disabled:opacity-50"
             >
-              {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-              Analyze &amp; Import
+              {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />}
+              <span>Analyze &amp; Import</span>
             </button>
           ) : (
             <button
@@ -290,7 +315,7 @@ export const ArticleImporterModal: React.FC<ArticleImporterModalProps> = ({
                 onClose();
                 onArticleImported(id);
               }}
-              className="px-4 py-2 text-sm font-semibold rounded bg-editorial-rust hover:bg-editorial-rust/90 dark:bg-editorial-orange dark:hover:bg-editorial-orange/90 text-white transition-colors"
+              className="brutal-pill-btn px-5 py-2 text-xs font-extrabold bg-violet-brand hover:bg-violet-hover text-white"
             >
               Open in Web Reader
             </button>
