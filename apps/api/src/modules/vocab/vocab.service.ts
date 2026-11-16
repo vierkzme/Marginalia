@@ -72,6 +72,61 @@ const CURATED_IDIOM_DICTIONARY: Record<string, { definition: string; phonetic: s
     phonetic: '/skeɪl ʌp/',
     tag: 'Phrasal Verb',
   },
+  'silver bullet': {
+    definition: 'A simple, seemingly magical solution to a complex or difficult technical problem.',
+    phonetic: '/ˈsɪlvər ˈbʊlɪt/',
+    tag: 'Idiom',
+  },
+  'cut corners': {
+    definition: 'To take shortcuts that sacrifice quality, safety, or thoroughness in order to save time or money.',
+    phonetic: '/kʌt ˈkɔːrnərz/',
+    tag: 'Phrasal Verb',
+  },
+  'ballpark': {
+    definition: 'A rough numerical estimate or approximate range used before exact figures are known.',
+    phonetic: '/ˈbɔːlpɑːrk/',
+    tag: 'Slang',
+  },
+  'low-hanging fruit': {
+    definition: 'Tasks or improvements that are easiest to achieve and deliver quick value with minimal effort.',
+    phonetic: '/loʊ ˈhæŋɪŋ fruːt/',
+    tag: 'Idiom',
+  },
+  'iron out': {
+    definition: 'To resolve minor problems, bugs, or disagreements before a final release.',
+    phonetic: '/ˈaɪərn aʊt/',
+    tag: 'Phrasal Verb',
+  },
+  'ubiquitous': {
+    definition: 'Present, appearing, or found everywhere across modern systems.',
+    phonetic: '/juːˈbɪkwɪtəs/',
+    tag: 'Academic',
+  },
+  'ephemeral': {
+    definition: 'Lasting for a very short period of time, such as temporary containers or short-lived cache entries.',
+    phonetic: '/ɪˈfɛmərəl/',
+    tag: 'Academic',
+  },
+  'zero in on': {
+    definition: 'To focus attention directly on a specific root cause, metric, or problem.',
+    phonetic: '/ˈzɪroʊ ɪn ɒn/',
+    tag: 'Phrasal Verb',
+  },
+  'caveat': {
+    definition: 'An important warning, limitation, or condition to keep in mind when evaluating a claim.',
+    phonetic: '/ˈkæviæt/',
+    tag: 'Academic',
+  },
+  'ship fast': {
+    definition: 'To release working software updates quickly and iterate based on real user feedback.',
+    phonetic: '/ʃɪp fæst/',
+    tag: 'Slang',
+  },
+  'deep dive': {
+    definition: 'An intensive, thorough investigation or technical analysis of a specific subject.',
+    phonetic: '/diːp daɪv/',
+    tag: 'Slang',
+  },
 };
 
 export async function lookupDefinition(lemma: string, contextSentence?: string) {

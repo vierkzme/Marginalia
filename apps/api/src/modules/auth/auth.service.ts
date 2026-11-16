@@ -6,7 +6,7 @@ import { prisma, isDatabaseConnected } from '../../config/db';
 import { memoryStore, generateSeedData, UserEntity } from '../../config/store';
 
 export const DEMO_USER_ID = '00000000-0000-0000-0000-000000000001';
-export const DEMO_USER_EMAIL = 'raka@engineering.dev';
+export const DEMO_USER_EMAIL = 'ardy@vierkzme.dev';
 
 function signToken(user: { id: string; email: string; fullName: string }) {
   return jwt.sign(

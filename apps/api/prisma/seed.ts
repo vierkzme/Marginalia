@@ -38,6 +38,15 @@ async function main() {
       update: {},
     });
 
+    await prisma.user.updateMany({
+      where: { id: demoUser.id, email: 'raka@engineering.dev' },
+      data: { email: demoUser.email },
+    });
+    await prisma.user.updateMany({
+      where: { id: demoUser.id, fullName: 'Raka Developer' },
+      data: { fullName: demoUser.fullName },
+    });
+
     for (const art of seed.articles) {
       await prisma.article.upsert({
         where: { id: art.id },
@@ -151,6 +160,41 @@ async function main() {
           reviewsCompletedCount: act.reviewsCompletedCount,
           articlesReadCount: act.articlesReadCount,
           totalActivityScore: act.totalActivityScore,
+        },
+        update: {},
+      });
+    }
+
+    for (const log of seed.reviewLogs) {
+      await prisma.reviewLog.upsert({
+        where: { id: log.id },
+        create: {
+          id: log.id,
+          userId: log.userId,
+          vocabItemId: log.vocabItemId,
+          qualityGrade: log.qualityGrade,
+          prevRepetition: log.prevRepetition,
+          newRepetition: log.newRepetition,
+          prevEf: log.prevEf,
+          newEf: log.newEf,
+          prevInterval: log.prevInterval,
+          newInterval: log.newInterval,
+          responseTimeMs: log.responseTimeMs,
+          reviewedAt: new Date(log.reviewedAt),
+        },
+        update: {},
+      });
+    }
+
+    for (const entry of seed.dictionaryCache) {
+      await prisma.dictionaryCache.upsert({
+        where: { lemma: entry.lemma },
+        create: {
+          lemma: entry.lemma,
+          phonetic: entry.phonetic,
+          partOfSpeech: entry.partOfSpeech,
+          definition: entry.definition,
+          source: entry.source,
         },
         update: {},
       });
