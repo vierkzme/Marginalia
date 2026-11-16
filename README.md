@@ -12,13 +12,13 @@ Unlike traditional flashcard applications that force vocabulary memorization in 
 
 ### 1. Distraction-Free Web Reader & Multi-Source Importer
 * **Multiple Input Sources:** Import reading material via raw text pasting, automated webpage extraction through Mozilla Readability, or subtitle uploads (`.txt` and `.srt` with automated timestamp stripping).
-* **Pre-Reading Lexical Coverage:** Evaluates reading difficulty before you begin by comparing text tokens against your personal vault ($<85\%$ Challenging, $85\text{–}95\%$ Optimal Comprehensible Input, $>95\%$ Fluency Practice).
-* **Editorial Typography:** Designed with a 65-character measure, adjustable type scale, and three ambient reading themes (Light Paper, Warm Sepia, and Dark Ink).
+* **Pre-Reading Lexical Coverage:** Evaluates reading difficulty before you begin by comparing text tokens against your personal vault ($<90\%$ Heavy Load, $90\text{–}94\%$ Challenging, $\ge 95\%$ Optimal Input).
+* **Editorial Typography & Progress Tracking:** Designed with a 65-character measure, adjustable type scale (`S / M / L / XL`), three ambient reading themes (Paper, Sepia, and Dark), and a `Complete Reading (+50 XP)` action to record daily reading progress.
 
 ### 2. One-Click Sentence Mining
-* **Instant Native Selection:** Select any unfamiliar word or multi-word expression in the reader to trigger the mining popover via the browser Selection API (`window.getSelection()`).
+* **Instant Native Selection:** Select any unfamiliar word or multi-word expression in the reader to trigger the responsive mining popover (side popover on desktop, bottom sheet on mobile) via the browser Selection API (`window.getSelection()`).
 * **Automated Context Extraction:** Uses Sentence Boundary Detection (SBD) to instantly isolate and store the complete surrounding sentence alongside the vocabulary item.
-* **Hybrid Definition & Tagging:** Fetches immediate dictionary definitions while allowing personal translation notes and categorizing tags (`Idiom`, `Phrasal Verb`, `Academic`, `Slang`).
+* **Hybrid Definition & Tagging:** Fetches immediate dictionary definitions while allowing personal notes and categorizing tags (`Idiom`, `Phrasal Verb`, `Academic`, `Slang`, `Collocation`).
 
 ### 3. spaCy Lemmatization & Dual-Color Smart Highlighting
 * **Morphological Lemma Matching:** Automatically connects inflected verb tenses and plural forms back to their base lemma (for example, *"ran into"* and *"running into"* map to `"run into"`).
@@ -28,9 +28,9 @@ Unlike traditional flashcard applications that force vocabulary memorization in 
   * **Neutral (Mastered):** Fully internalized words rendered without visual distraction.
 
 ### 4. Cloze Deletion Review Deck with Multi-Context Hints
-* **Contextual Active Recall:** Reviews present original sentences with the target phrase masked (`[ • • • • • • • ]`), encouraging natural retrieval from memory.
-* **Multi-Context Hint (`H` key):** If an item has been mined across multiple articles, cycle through alternate context sentences without revealing the answer.
-* **Progressive Letter Hint (`L` key):** Uncovers the initial letters of each word in the target expression (for example, `b___ t__ b_____`).
+* **Contextual Active Recall:** Reviews present original sentences with the target phrase masked (`[ • • • • • • • ]`), encouraging natural retrieval from memory with optional typed-answer checking.
+* **Multi-Context Hint (`H` key — `Switch Context`):** If an item has been mined across multiple articles, cycle through alternate context sentences without revealing the answer.
+* **First-Letter Hint (`L` key):** Uncovers the initial letters of each word in the target expression (for example, `b___ t__ b_____`).
 
 ### 5. SuperMemo-2 (SM-2) Spaced Repetition Scheduling
 Marginalia schedules upcoming reviews using pure SuperMemo-2 calculations with 4-button grading: **Again (1)**, **Hard (2)**, **Good (3)**, and **Easy (4)**.
@@ -41,10 +41,15 @@ $$\text{Easiness Factor Update: } EF' = \max\left(1.3,\; EF + (0.1 - (5 - q) \ti
 
 Automated lapse tracking flags any card failing four or more times ($\ge 4$ lapses) as a **Leech**, adjusting reader highlights and adding the card to the dashboard watchlist.
 
-### 6. Mastery Analytics Dashboard
+### 6. Daily Goals, XP Progression & Mastery Analytics
+* **Interactive Daily Goals (`Library`):** Tracks daily milestones (**Read 1 Article** `+50 XP`, **Review Flashcards** `+20 XP`, **Mine 3 Idioms** `+100 XP`) alongside real-time XP and level badges (`250 XP` per level).
 * **365-Day Contribution Heatmap:** Visualizes daily reading and review habits inspired by GitHub contribution activity.
-* **Retention Distribution (Recharts):** Tracks vocabulary maturation across **New**, **Learning** ($< 7\text{ days}$), **Young** ($7\text{–}21\text{ days}$), and **Mature** ($> 21\text{ days}$).
+* **Retention Distribution (Recharts):** Tracks vocabulary maturation across **New (Newly Saved)**, **Learning (< 7 Days)**, **Young (7–21 Days)**, and **Mature (> 21 Days)**.
 * **Leech Watchlist:** Surfaces problematic vocabulary requiring alternative context sentences or mnemonic assistance.
+
+### 7. Authentication, Instant Demo Mode & Preferences
+* **Account Authentication & Isolation:** Supports JWT registration, login, and isolated per-user article/vocabulary vaults, plus one-click entry into the seeded **Demo Account** (`raka@engineering.dev`).
+* **Workspace & Reader Settings:** Customize your display name, daily Cloze review goal (`5`–`200` cards/day), light/dark workspace theme, default reader font size, and default paper theme.
 
 ---
 
@@ -66,12 +71,12 @@ marginalia/
 
 | Layer | Technologies | Responsibility |
 | :--- | :--- | :--- |
-| **Frontend** | React 18, TypeScript, Tailwind CSS, Lucide Icons | Distraction-free reader, text selection hooks, and interactive cloze review deck. |
+| **Frontend** | React 18, TypeScript, Tailwind CSS, Lucide Icons | Tactile Neo-Brutalist workspace, distraction-free reader, text selection hooks, and interactive cloze review deck. |
 | **Data Visualization** | Recharts | Retention distribution graphs, mastery progress, and lapse statistics. |
-| **Core Backend** | Node.js, Express, TypeScript, Prisma ORM | RESTful endpoints, JWT authentication, and mathematical SM-2 scheduling. |
-| **Dual-Mode Persistence** | PostgreSQL & In-Memory Store | Production PostgreSQL support with instant zero-configuration in-memory fallback. |
+| **Core Backend** | Node.js, Express, TypeScript, Prisma ORM | RESTful endpoints, JWT authentication, reading progress & XP engine, and SM-2 scheduling. |
+| **Dual-Mode Persistence** | PostgreSQL & JSON Local Store | Production PostgreSQL support with instant zero-configuration fallback persisted at `.data/local-vault.json`. |
 | **NLP Microservice** | Python 3.11, FastAPI, spaCy | Sentence Boundary Detection (SBD), multi-word lemmatization, and `.srt` cleaning. |
-| **Testing** | Jest, React Testing Library, Pytest | Test suites for SM-2 interval formulas, NLP pipelines, and interactive UI components. |
+| **Testing** | Jest, Vitest + React Testing Library, Pytest | Test suites for SM-2 interval formulas, NLP pipelines, and interactive UI components. |
 | **DevOps** | Docker, Docker Compose | Multi-stage production container builds and local service orchestration. |
 
 ---
