@@ -3,6 +3,14 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+
   html {
     font-family: '"Plus Jakarta Sans"', Inter, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -29,24 +37,42 @@
 
   /* Keyboard Accessibility: Visible Focus Ring */
   :focus-visible {
-    outline: 2px solid #9A3412;
+    outline: 2px solid #5B2DF5;
     outline-offset: 2px;
   }
 
   /* Selection API styling */
   ::selection {
-    background-color: #9A3412;
+    background-color: #5B2DF5;
     color: #FFFFFF;
+  }
+}
+
+@layer components {
+  .brutal-card {
+    @apply rounded-2xl border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated shadow-brutal dark:shadow-brutal-dark;
+  }
+
+  .brutal-card-sm {
+    @apply rounded-2xl border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated shadow-brutal-sm dark:shadow-brutal-dark-sm;
+  }
+
+  .brutal-pill-btn {
+    @apply rounded-full border-2 border-[#141413] dark:border-[#3A3E4C] shadow-brutal-xs dark:shadow-brutal-dark-xs transition-all duration-100 active:translate-y-[2px] active:shadow-none;
+  }
+
+  .brutal-input {
+    @apply border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-surface text-[#141413] dark:text-ink-ivory placeholder:text-ink-muted dark:placeholder:text-ink-pewter shadow-brutal-xs dark:shadow-brutal-dark-xs focus:outline-none focus:ring-2 focus:ring-violet-brand;
   }
 }
 
 /* Tactile Semantic Highlights */
 .marker-highlight-yellow {
   background-color: #FDE68A;
-  color: #1C1917;
+  color: #141413;
   border-bottom: 2px solid #D97706;
-  border-radius: 2px;
-  padding: 0 2px;
+  border-radius: 3px;
+  padding: 0 3px;
   transition: background-color 150ms ease;
 }
 
@@ -64,8 +90,8 @@
   background-color: #FECDD3;
   color: #4C0519;
   border-bottom: 2px dashed #E11D48;
-  border-radius: 2px;
-  padding: 0 2px;
+  border-radius: 3px;
+  padding: 0 3px;
   transition: background-color 150ms ease;
 }
 
