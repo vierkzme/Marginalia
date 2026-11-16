@@ -9,7 +9,7 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* Interaction Affordances: Rule R-39 in antislop */
+  /* Interaction Affordances */
   a[href],
   button,
   summary,
@@ -27,7 +27,7 @@
     cursor: not-allowed;
   }
 
-  /* Keyboard Accessibility: Visible Focus Ring Rule R-32 */
+  /* Keyboard Accessibility: Visible Focus Ring */
   :focus-visible {
     outline: 2px solid #9A3412;
     outline-offset: 2px;
