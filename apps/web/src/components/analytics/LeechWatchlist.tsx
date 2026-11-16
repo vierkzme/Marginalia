@@ -54,7 +54,7 @@ export const LeechWatchlist: React.FC<LeechWatchlistProps> = ({ items }) => {
         {items.map((item, idx) => (
           <div
             key={item.vocabItemId}
-            className="brutal-card-sm p-4 flex items-center justify-between gap-4 border-t-4 border-t-rose-500"
+            className="brutal-card-sm p-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4 border-t-4 border-t-rose-500"
           >
             <div className="flex items-center gap-3.5 min-w-0">
               <span className="font-mono text-base font-extrabold text-rose-600 dark:text-rose-400 shrink-0">

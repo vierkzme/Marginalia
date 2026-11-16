@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '../api/client';
 import {
   Search,
@@ -314,14 +315,15 @@ export const VaultPage: React.FC = () => {
       </div>
 
       {/* MULTI-CONTEXT INSPECTION MODAL (Screen 3 Syllabus Motif) */}
-      {inspectItem && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="vault-inspect-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#141413]/50 backdrop-blur-xs"
-          onClick={() => setInspectItem(null)}
-        >
+      {inspectItem &&
+        createPortal(
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="vault-inspect-title"
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#141413]/55 backdrop-blur-xs"
+            onClick={() => setInspectItem(null)}
+          >
           <div
             className="w-full max-w-xl max-h-[85vh] overflow-y-auto overscroll-contain bg-white dark:bg-ink-elevated rounded-3xl border-2 border-[#141413] dark:border-[#3A3E4C] p-6 shadow-brutal-lg dark:shadow-brutal-dark"
             onClick={(e) => e.stopPropagation()}
@@ -420,8 +422,9 @@ export const VaultPage: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

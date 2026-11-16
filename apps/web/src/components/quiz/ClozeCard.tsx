@@ -147,7 +147,7 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
             return (
               <span
                 key={i}
-                className="inline-block px-3.5 py-0.5 mx-1 border-2 border-[#141413] bg-violet-soft dark:bg-violet-darkSoft text-violet-brand dark:text-violet-bright font-mono font-extrabold rounded-xl shadow-brutal-xs"
+                className="inline-block px-2 sm:px-3.5 py-0.5 mx-1 border-2 border-[#141413] bg-violet-soft dark:bg-violet-darkSoft text-violet-brand dark:text-violet-bright font-mono text-[0.85em] sm:text-[0.92em] font-extrabold rounded-xl shadow-brutal-xs whitespace-nowrap"
               >
                 [ • • • • • • • ]
               </span>
@@ -162,7 +162,7 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
   return (
     <div className="w-full max-w-2xl mx-auto brutal-card rounded-3xl border-t-4 border-t-violet-brand overflow-hidden">
       {/* CARD HEADER */}
-      <div className="px-6 py-4 border-b-2 border-[#141413] dark:border-[#3A3E4C] flex flex-wrap items-center justify-between gap-3 bg-canvas-cream dark:bg-ink-surface">
+      <div className="px-4 py-3 sm:px-6 sm:py-4 border-b-2 border-[#141413] dark:border-[#3A3E4C] flex flex-wrap items-center justify-between gap-2 sm:gap-3 bg-canvas-cream dark:bg-ink-surface">
         <div className="flex flex-wrap items-center gap-2">
           <span className="px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-violet-soft dark:bg-violet-darkSoft text-violet-brand dark:text-violet-bright">
             {card.partOfSpeech || 'term'}
@@ -193,13 +193,13 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
       </div>
 
       {/* CLOZE SENTENCE PROMPT */}
-      <div className="p-6 sm:p-8 space-y-6 bg-white dark:bg-ink-elevated">
+      <div className="p-4 sm:p-8 space-y-4 sm:space-y-6 bg-white dark:bg-ink-elevated">
         <div className="text-xs font-extrabold uppercase tracking-wider text-violet-brand dark:text-violet-bright flex items-center gap-1.5">
           <BookOpen className="w-4 h-4" aria-hidden="true" />
           <span>Sentence Context • Cloze Prompt</span>
         </div>
 
-        <div className="font-serif text-xl sm:text-2xl text-[#141413] dark:text-ink-ivory leading-relaxed min-h-[90px] flex items-center">
+        <div className="font-serif text-lg sm:text-2xl text-[#141413] dark:text-ink-ivory leading-relaxed min-h-[72px] sm:min-h-[90px] flex items-center">
           {renderSentenceContent()}
         </div>
 
@@ -217,18 +217,18 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
         {/* OPTIONAL TYPING RECALL INPUT */}
         {!isFlipped && (
           <form onSubmit={handleCheckTypedAnswer} className="space-y-3 pt-1">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 min-w-0">
               <input
                 type="text"
                 value={typedAnswer}
                 onChange={(e) => setTypedAnswer(e.target.value)}
-                placeholder="Type your answer to practice (optional)..."
+                placeholder="Type answer (optional)..."
                 aria-label="Type your answer"
-                className="brutal-input flex-1 px-4 py-2.5 rounded-full text-sm font-mono"
+                className="brutal-input flex-1 min-w-0 w-full px-3.5 sm:px-4 py-2.5 rounded-full text-xs sm:text-sm font-mono"
               />
               <button
                 type="submit"
-                className="brutal-pill-btn px-5 py-2.5 text-xs font-extrabold bg-white dark:bg-ink-surface text-[#141413] dark:text-ink-ivory hover:bg-violet-tint"
+                className="brutal-pill-btn shrink-0 px-4 sm:px-5 py-2.5 text-xs font-extrabold bg-white dark:bg-ink-surface text-[#141413] dark:text-ink-ivory hover:bg-violet-tint"
               >
                 Check
               </button>

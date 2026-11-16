@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, FileText, Link as LinkIcon, UploadCloud, Loader2 } from 'lucide-react';
 import { api } from '../../api/client';
 import { CoverageBadge } from './CoverageBadge';
@@ -90,12 +91,12 @@ export const ArticleImporterModal: React.FC<ArticleImporterModalProps> = ({
         : 'bg-white dark:bg-ink-surface text-[#141413] dark:text-ink-ivory hover:bg-violet-tint dark:hover:bg-ink-elevated'
     }`;
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="importer-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#141413]/50 backdrop-blur-xs"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#141413]/55 backdrop-blur-xs"
       onClick={() => {
         handleReset();
         onClose();
@@ -322,6 +323,7 @@ export const ArticleImporterModal: React.FC<ArticleImporterModalProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

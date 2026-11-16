@@ -202,10 +202,10 @@ export const ReviewPage: React.FC = () => {
   const progressPercent = Math.round(((currentIndex + 1) / cards.length) * 100);
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-canvas-cream dark:bg-ink-dark py-8 px-4 sm:px-6">
-      <div className="max-w-2xl mx-auto mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="font-sans text-2xl font-extrabold tracking-tight text-[#141413] dark:text-ink-ivory">
+    <div className="min-h-[calc(100vh-4rem)] bg-canvas-cream dark:bg-ink-dark pt-5 pb-28 sm:py-8 px-4 sm:px-6">
+      <div className="max-w-2xl mx-auto mb-5 sm:mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+          <h1 className="font-sans text-xl sm:text-2xl font-extrabold tracking-tight text-[#141413] dark:text-ink-ivory">
             Daily Cloze Review
           </h1>
           <span className="px-3 py-1 rounded-full border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated text-xs font-mono font-extrabold shadow-brutal-xs">
