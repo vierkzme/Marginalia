@@ -143,7 +143,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode = 'login' }) => 
             ) : (
               <Sparkles className="w-4 h-4" aria-hidden="true" />
             )}
-            <span>Continue with Demo Account (Raka)</span>
+            <span>Continue with Demo Account (Ardy)</span>
           </button>
 
           <div className="relative flex items-center justify-center">
@@ -267,7 +267,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode = 'login' }) => 
 
           {mode === 'login' && (
             <div className="pt-2 text-center text-[11px] font-mono text-ink-muted dark:text-ink-pewter">
-              Demo credentials: <strong>raka@engineering.dev</strong> / <strong>password123</strong>
+              Demo credentials: <strong>ardy@vierkzme.dev</strong> / <strong>password123</strong>
             </div>
           )}
         </div>

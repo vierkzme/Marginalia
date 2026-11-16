@@ -376,7 +376,7 @@ export const SettingsPage: React.FC = () => {
             </h2>
             <p className="text-xs text-ink-muted dark:text-ink-pewter font-mono mt-0.5">
               {user?.isDemo
-                ? 'You are exploring the seeded Demo Account (Raka Developer).'
+                ? 'You are exploring the seeded Demo Account (Ardy Developer).'
                 : 'Switch to the seeded Demo Account anytime or sign out.'}
             </p>
           </div>
