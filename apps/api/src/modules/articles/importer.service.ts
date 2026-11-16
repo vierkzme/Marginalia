@@ -321,7 +321,7 @@ export async function listArticles(userId: string) {
   } else {
     const store = memoryStore.getData();
     return store.articles
-      .filter((a) => a.userId === userId || a.userId === '00000000-0000-0000-0000-000000000001')
+      .filter((a) => a.userId === userId)
       .map((a) => ({
         id: a.id,
         title: a.title,

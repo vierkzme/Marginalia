@@ -186,7 +186,7 @@ export async function previewSelection(input: PreviewSelectionInput) {
   } else {
     const store = memoryStore.getData();
     const existing = store.vocabItems.find(
-      (v) => (v.userId === input.userId || v.userId === '00000000-0000-0000-0000-000000000001') && v.lemma.toLowerCase() === normalizedLemma
+      (v) => v.userId === input.userId && v.lemma.toLowerCase() === normalizedLemma
     );
     if (existing) {
       const contextCount = store.contexts.filter((c) => c.vocabItemId === existing.id).length;
@@ -332,7 +332,7 @@ export async function mineVocab(input: MineVocabInput) {
   } else {
     const store = memoryStore.getData();
     let vocabItem = store.vocabItems.find(
-      (v) => (v.userId === input.userId || v.userId === '00000000-0000-0000-0000-000000000001') && v.lemma.toLowerCase() === normalizedLemma
+      (v) => v.userId === input.userId && v.lemma.toLowerCase() === normalizedLemma
     );
 
     const isNew = !vocabItem;
@@ -462,7 +462,7 @@ export async function listUserVault(userId: string, filter?: { tagSlug?: string;
     return items;
   } else {
     const store = memoryStore.getData();
-    let items = store.vocabItems.filter((v) => v.userId === userId || v.userId === '00000000-0000-0000-0000-000000000001');
+    let items = store.vocabItems.filter((v) => v.userId === userId);
 
     if (filter?.stage) {
       items = items.filter((v) => v.masteryStage === filter.stage);

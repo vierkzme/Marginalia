@@ -92,7 +92,7 @@ export async function getDueReviews(userId: string) {
     const effectiveUserId = userId || '00000000-0000-0000-0000-000000000001';
 
     const dueItems = store.vocabItems.filter((v) => {
-      const isOwner = v.userId === effectiveUserId || v.userId === '00000000-0000-0000-0000-000000000001';
+      const isOwner = v.userId === effectiveUserId;
       return isOwner && new Date(v.nextReviewDate).getTime() <= now.getTime();
     });
 

@@ -43,16 +43,6 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
     req.user = decoded;
     next();
   } catch {
-    const demoUser = memoryStore.getData().users[0];
-    if (demoUser) {
-      req.user = {
-        id: demoUser.id,
-        email: demoUser.email,
-        fullName: demoUser.fullName,
-      };
-      return next();
-    }
-
     res.status(401).json({
       success: false,
       error: {

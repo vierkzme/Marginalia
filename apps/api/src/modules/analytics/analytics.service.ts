@@ -26,13 +26,9 @@ export async function getDashboardAnalytics(userId: string) {
     contexts = await prisma.vocabContext.findMany();
   } else {
     const store = memoryStore.getData();
-    user = store.users.find((u) => u.id === effectiveUserId) || store.users[0];
-    vocabItems = store.vocabItems.filter(
-      (v) => v.userId === effectiveUserId || v.userId === '00000000-0000-0000-0000-000000000001'
-    );
-    activities = store.dailyActivities.filter(
-      (d) => d.userId === effectiveUserId || d.userId === '00000000-0000-0000-0000-000000000001'
-    );
+    user = store.users.find((u) => u.id === effectiveUserId);
+    vocabItems = store.vocabItems.filter((v) => v.userId === effectiveUserId);
+    activities = store.dailyActivities.filter((d) => d.userId === effectiveUserId);
     tags = store.tags;
     vocabTags = store.vocabTags;
     contexts = store.contexts;
@@ -44,11 +40,11 @@ export async function getDashboardAnalytics(userId: string) {
   });
 
   const streak = {
-    currentStreak: user?.currentStreak || 14,
-    longestStreak: user?.longestStreak || 29,
+    currentStreak: user?.currentStreak ?? 0,
+    longestStreak: user?.longestStreak ?? 0,
     todayCompletedReviews: todayAct?.reviewsCompletedCount || 0,
     todayWordsMined: todayAct?.wordsMinedCount || 0,
-    dailyGoal: user?.dailyReviewGoal || 20,
+    dailyGoal: user?.dailyReviewGoal ?? 20,
   };
 
   const totalVocab = Math.max(1, vocabItems.length);
@@ -148,7 +144,10 @@ export async function getDashboardAnalytics(userId: string) {
     'Slang': 0,
   };
 
+  const userVocabIds = new Set(vocabItems.map((v) => v.id));
+
   vocabTags.forEach((vt) => {
+    if (!userVocabIds.has(vt.vocabItemId)) return;
     const t = tags.find((item) => item.id === vt.tagId);
     if (t && tagCounts[t.name] !== undefined) {
       tagCounts[t.name]++;
@@ -157,7 +156,7 @@ export async function getDashboardAnalytics(userId: string) {
 
   const tagDistribution = Object.entries(tagCounts).map(([tag, count]) => ({
     tag,
-    count: count || (tag === 'Idiom' ? 4 : tag === 'Phrasal Verb' ? 3 : 1),
+    count,
   }));
 
   const leechWatchlist = vocabItems

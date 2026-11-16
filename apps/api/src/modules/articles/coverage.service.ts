@@ -26,7 +26,7 @@ export async function calculateArticleCoverage(
   } else {
     const store = memoryStore.getData();
     userVaultItems = store.vocabItems
-      .filter((v) => v.userId === userId || v.userId === '00000000-0000-0000-0000-000000000001')
+      .filter((v) => v.userId === userId)
       .map((v) => ({ lemma: v.lemma, masteryStage: v.masteryStage, isLeech: v.isLeech }));
   }
 

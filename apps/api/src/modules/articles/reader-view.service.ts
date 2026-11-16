@@ -40,7 +40,7 @@ export async function getArticleReaderView(userId: string, articleId: string) {
       .sort((a, b) => a.paragraphIndex - b.paragraphIndex || a.sentenceIndex - b.sentenceIndex);
 
     userVocab = store.vocabItems.filter(
-      (v) => v.userId === userId || v.userId === '00000000-0000-0000-0000-000000000001'
+      (v) => v.userId === userId
     );
   }
 
