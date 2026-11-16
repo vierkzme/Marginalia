@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowLeft, ExternalLink, BookMarked, X, Star, Check, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SmartHighlightedSentence, SentenceHighlight } from './SmartHighlightedSentence';
@@ -109,22 +110,22 @@ export const WebReader: React.FC<WebReaderProps> = ({
       <div className="relative border-b-2 border-[#141413] dark:border-[#3A3E4C] overflow-hidden bg-[#FDFBF7]">
         <BauhausHeaderArt variant="mondrian" className="w-full h-44 sm:h-56" />
 
-        <div className="absolute inset-x-0 top-4 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3">
+        <div className="absolute inset-x-0 top-3 sm:top-4 px-3 sm:px-6 lg:px-8">
+          <div className="max-w-5xl mx-auto flex items-start sm:items-center justify-between gap-2">
             {/* Circular Back Button */}
             <button
               type="button"
               onClick={() => navigate('/')}
               aria-label="Back to Library"
-              className="brutal-pill-btn w-10 h-10 bg-white dark:bg-ink-elevated text-[#141413] dark:text-ink-ivory flex items-center justify-center hover:bg-violet-tint"
+              className="brutal-pill-btn w-9 h-9 sm:w-10 sm:h-10 shrink-0 bg-white dark:bg-ink-elevated text-[#141413] dark:text-ink-ivory flex items-center justify-center hover:bg-violet-tint"
             >
-              <ArrowLeft className="w-5 h-5" aria-hidden="true" />
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
             </button>
 
             {/* Reader Controls Dock */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
               <div
-                className="flex items-center rounded-full border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated p-0.5 shadow-brutal-xs text-xs font-mono"
+                className="flex items-center rounded-full border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated p-0.5 shadow-brutal-xs text-[11px] sm:text-xs font-mono"
                 role="group"
                 aria-label="Font size"
               >
@@ -136,7 +137,7 @@ export const WebReader: React.FC<WebReaderProps> = ({
                       type="button"
                       onClick={() => setFontSize(sz)}
                       aria-pressed={fontSize === sz}
-                      className={`px-2 py-1 rounded-full font-bold transition-colors ${
+                      className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-bold transition-colors ${
                         fontSize === sz
                           ? 'bg-violet-brand text-white'
                           : 'text-[#141413] dark:text-ink-ivory hover:bg-violet-tint'
@@ -149,7 +150,7 @@ export const WebReader: React.FC<WebReaderProps> = ({
               </div>
 
               <div
-                className="flex items-center rounded-full border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated p-0.5 shadow-brutal-xs text-xs"
+                className="flex items-center rounded-full border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated p-0.5 shadow-brutal-xs text-[11px] sm:text-xs"
                 role="group"
                 aria-label="Reading theme"
               >
@@ -161,7 +162,7 @@ export const WebReader: React.FC<WebReaderProps> = ({
                       type="button"
                       onClick={() => setReadingTheme(theme)}
                       aria-pressed={readingTheme === theme}
-                      className={`px-2.5 py-1 rounded-full font-bold transition-colors ${
+                      className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-bold transition-colors ${
                         readingTheme === theme
                           ? 'bg-[#141413] dark:bg-violet-brand text-white'
                           : 'text-[#141413] dark:text-ink-ivory hover:bg-violet-tint'
@@ -178,7 +179,7 @@ export const WebReader: React.FC<WebReaderProps> = ({
                 onClick={() => setIsLedgerOpen((prev) => !prev)}
                 aria-label="Toggle Vault Ledger"
                 aria-expanded={isLedgerOpen}
-                className={`brutal-pill-btn px-3.5 py-1.5 text-xs font-extrabold inline-flex items-center gap-1.5 ${
+                className={`brutal-pill-btn px-3 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 ${
                   isLedgerOpen
                     ? 'bg-violet-brand text-white'
                     : 'bg-white dark:bg-ink-elevated text-[#141413] dark:text-ink-ivory hover:bg-violet-tint'
@@ -193,7 +194,7 @@ export const WebReader: React.FC<WebReaderProps> = ({
       </div>
 
       {/* OVERLAPPING EDITORIAL SHEET & MARGIN SYLLABUS */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-10 flex flex-col lg:flex-row gap-8 items-start">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-10 relative z-10 flex flex-col lg:flex-row gap-8 items-start">
         <article
           className={`flex-1 w-full rounded-3xl border-2 border-[#141413] dark:border-[#3A3E4C] shadow-brutal-lg dark:shadow-brutal-dark p-6 sm:p-10 transition-colors duration-200 ${getSheetThemeClass()}`}
         >
@@ -363,66 +364,68 @@ export const WebReader: React.FC<WebReaderProps> = ({
       </div>
 
       {/* WORD INSPECTION MODAL */}
-      {inspectedWord && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="inspected-word-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#141413]/50 backdrop-blur-xs"
-          onClick={() => setInspectedWord(null)}
-        >
+      {inspectedWord &&
+        createPortal(
           <div
-            className="w-full max-w-md rounded-3xl border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated p-6 shadow-brutal-lg dark:shadow-brutal-dark"
-            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inspected-word-title"
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#141413]/55 backdrop-blur-xs"
+            onClick={() => setInspectedWord(null)}
           >
-            <div className="flex items-center justify-between mb-3">
-              <span
-                className={`px-3 py-0.5 text-[11px] font-extrabold uppercase tracking-wider rounded-full border ${
-                  inspectedWord.highlightColor === 'PINK'
-                    ? 'bg-marker-leech text-[#4C0519] border-marker-leechBorder'
-                    : 'bg-violet-soft text-violet-brand border-violet-brand/20'
-                }`}
-              >
-                {inspectedWord.highlightColor === 'PINK' ? 'Leech Word' : 'Learning Stage'}
-              </span>
-              <button
-                type="button"
-                onClick={() => setInspectedWord(null)}
-                aria-label="Close inspection dialog"
-                className="brutal-pill-btn p-1.5 bg-white dark:bg-ink-surface text-[#141413] dark:text-ink-ivory"
-              >
-                <X className="w-4 h-4" aria-hidden="true" />
-              </button>
-            </div>
+            <div
+              className="w-full max-w-md rounded-3xl border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated p-6 shadow-brutal-lg dark:shadow-brutal-dark"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span
+                  className={`px-3 py-0.5 text-[11px] font-extrabold uppercase tracking-wider rounded-full border ${
+                    inspectedWord.highlightColor === 'PINK'
+                      ? 'bg-marker-leech text-[#4C0519] border-marker-leechBorder'
+                      : 'bg-violet-soft text-violet-brand border-violet-brand/20'
+                  }`}
+                >
+                  {inspectedWord.highlightColor === 'PINK' ? 'Leech Word' : 'Learning Stage'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setInspectedWord(null)}
+                  aria-label="Close inspection dialog"
+                  className="brutal-pill-btn p-1.5 bg-white dark:bg-ink-surface text-[#141413] dark:text-ink-ivory"
+                >
+                  <X className="w-4 h-4" aria-hidden="true" />
+                </button>
+              </div>
 
-            <h3 id="inspected-word-title" className="font-sans text-2xl font-extrabold text-[#141413] dark:text-ink-ivory mb-1">
-              {inspectedWord.lemma}
-            </h3>
-            <p className="text-xs text-ink-muted dark:text-ink-pewter font-mono mb-4">
-              Surface form: "{inspectedWord.surfaceForm}"
-            </p>
-
-            <div className="p-4 rounded-2xl bg-violet-tint dark:bg-ink-surface border-2 border-[#141413] dark:border-[#3A3E4C] text-sm mb-5">
-              <span className="font-mono text-[11px] uppercase tracking-wider text-violet-brand dark:text-violet-bright font-extrabold block mb-1">
-                Definition
-              </span>
-              <p className="text-[#141413] dark:text-ink-ivory font-medium leading-relaxed">
-                {inspectedWord.definition || 'No definition recorded yet.'}
+              <h3 id="inspected-word-title" className="font-sans text-2xl font-extrabold text-[#141413] dark:text-ink-ivory mb-1">
+                {inspectedWord.lemma}
+              </h3>
+              <p className="text-xs text-ink-muted dark:text-ink-pewter font-mono mb-4">
+                Surface form: "{inspectedWord.surfaceForm}"
               </p>
-            </div>
 
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setInspectedWord(null)}
-                className="brutal-pill-btn px-5 py-2 text-xs font-extrabold bg-violet-brand hover:bg-violet-hover text-white"
-              >
-                Done
-              </button>
+              <div className="p-4 rounded-2xl bg-violet-tint dark:bg-ink-surface border-2 border-[#141413] dark:border-[#3A3E4C] text-sm mb-5">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-violet-brand dark:text-violet-bright font-extrabold block mb-1">
+                  Definition
+                </span>
+                <p className="text-[#141413] dark:text-ink-ivory font-medium leading-relaxed">
+                  {inspectedWord.definition || 'No definition recorded yet.'}
+                </p>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setInspectedWord(null)}
+                  className="brutal-pill-btn px-5 py-2 text-xs font-extrabold bg-violet-brand hover:bg-violet-hover text-white"
+                >
+                  Done
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       {children}
     </div>
