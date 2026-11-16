@@ -116,6 +116,14 @@ export const api = {
       return apiRequest('/articles/import', { method: 'POST', body: JSON.stringify(payload) });
     },
     getReaderView: (articleId: string) => apiRequest(`/articles/${articleId}/reader-view`),
+    updateProgress: (
+      articleId: string,
+      payload: { progressPct?: number; isCompleted?: boolean }
+    ) =>
+      apiRequest(`/articles/${articleId}/progress`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      }),
   },
   vocab: {
     previewSelection: (payload: {

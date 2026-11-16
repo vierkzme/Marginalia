@@ -26,7 +26,11 @@ export const LibraryPage: React.FC = () => {
   const [dailyStats, setDailyStats] = useState({
     todayCompletedReviews: 0,
     todayWordsMined: 0,
+    todayArticlesRead: 0,
     dueCardsCount: 0,
+    todayXp: 0,
+    totalXp: 0,
+    level: 1,
   });
 
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -56,7 +60,11 @@ export const LibraryPage: React.FC = () => {
       const nextStats = {
         todayCompletedReviews: 0,
         todayWordsMined: 0,
+        todayArticlesRead: 0,
         dueCardsCount: 0,
+        todayXp: 0,
+        totalXp: 0,
+        level: 1,
       };
 
       if (dashRes.status === 'fulfilled') {
@@ -64,6 +72,12 @@ export const LibraryPage: React.FC = () => {
         if (dash?.streak) {
           nextStats.todayCompletedReviews = dash.streak.todayCompletedReviews || 0;
           nextStats.todayWordsMined = dash.streak.todayWordsMined || 0;
+          nextStats.todayArticlesRead = dash.streak.todayArticlesRead || 0;
+        }
+        if (dash?.xp) {
+          nextStats.todayXp = dash.xp.todayXp || 0;
+          nextStats.totalXp = dash.xp.totalXp || 0;
+          nextStats.level = dash.xp.level || 1;
         }
       }
 
@@ -132,7 +146,7 @@ export const LibraryPage: React.FC = () => {
     });
   }, [articles, searchQuery, activeFilter]);
 
-  const goal1Done = articles.length > 0 && (heroArticle?.readingProgressPct || 0) > 0;
+  const goal1Done = dailyStats.todayArticlesRead > 0 || Boolean(heroArticle?.isCompleted);
   const goal2Done = dailyStats.todayCompletedReviews > 0;
   const goal3Done = dailyStats.todayWordsMined >= 3;
   const completedGoalsCount = [goal1Done, goal2Done, goal3Done].filter(Boolean).length;
@@ -282,13 +296,18 @@ export const LibraryPage: React.FC = () => {
 
             {/* RIGHT: DAILY GOALS CHECKLIST */}
             <section className="lg:col-span-5 space-y-3" aria-labelledby="daily-goals-heading">
-              <div className="flex items-center justify-between">
-                <h2
-                  id="daily-goals-heading"
-                  className="text-xs font-extrabold uppercase tracking-widest text-ink-muted dark:text-ink-pewter"
-                >
-                  DAILY GOALS
-                </h2>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <h2
+                    id="daily-goals-heading"
+                    className="text-xs font-extrabold uppercase tracking-widest text-ink-muted dark:text-ink-pewter"
+                  >
+                    DAILY GOALS
+                  </h2>
+                  <span className="px-2 py-0.5 rounded-full bg-violet-soft dark:bg-violet-darkSoft text-violet-brand dark:text-violet-bright text-[10px] font-mono font-extrabold">
+                    Lvl {dailyStats.level} • +{dailyStats.todayXp} XP today
+                  </span>
+                </div>
                 <span className="text-xs font-extrabold text-violet-brand dark:text-violet-bright">
                   {completedGoalsCount} / 3 Complete
                 </span>

@@ -1,12 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ExternalLink, BookMarked, X, Star, Check, AlertTriangle } from 'lucide-react';
+import {
+  ArrowLeft,
+  ExternalLink,
+  BookMarked,
+  X,
+  Star,
+  Check,
+  AlertTriangle,
+  CheckCircle2,
+  Loader2,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SmartHighlightedSentence, SentenceHighlight } from './SmartHighlightedSentence';
 import { useTextSelection } from '../../hooks/useTextSelection';
 import { SelectionPopover } from './SelectionPopover';
 import { BauhausHeaderArt } from '../common/BauhausHeaderArt';
-import { getReaderPreferences, setReaderPreferences } from '../../api/client';
+import { api, getReaderPreferences, setReaderPreferences } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 
 export interface WebReaderProps {
   article: {
@@ -17,6 +28,8 @@ export interface WebReaderProps {
     totalWordCount: number;
     uniqueLemmaCount: number;
     coveragePercentage: number;
+    readingProgressPct?: number;
+    isCompleted?: boolean;
     summaryMessage?: string;
   };
   paragraphs: Array<{
@@ -39,6 +52,7 @@ export const WebReader: React.FC<WebReaderProps> = ({
   children,
 }) => {
   const navigate = useNavigate();
+  const { refreshProfile } = useAuth();
   const readerContentRef = useRef<HTMLDivElement>(null);
   const { selectionData, clearSelection } = useTextSelection(readerContentRef);
   const initialPrefs = getReaderPreferences();
@@ -46,6 +60,32 @@ export const WebReader: React.FC<WebReaderProps> = ({
   const [readingTheme, setReadingTheme] = useState<'light' | 'sepia' | 'dark'>(initialPrefs.readingTheme);
   const [isLedgerOpen, setIsLedgerOpen] = useState(false);
   const [inspectedWord, setInspectedWord] = useState<SentenceHighlight | null>(null);
+  const [isCompleted, setIsCompleted] = useState<boolean>(Boolean(article.isCompleted));
+  const [completing, setCompleting] = useState<boolean>(false);
+
+  useEffect(() => {
+    setIsCompleted(Boolean(article.isCompleted));
+    if (article.id && (article.readingProgressPct || 0) === 0 && !article.isCompleted) {
+      api.articles.updateProgress(article.id, { progressPct: 25 }).catch(() => {});
+    }
+  }, [article.id, article.isCompleted, article.readingProgressPct]);
+
+  const handleCompleteReading = async () => {
+    if (isCompleted || completing) return;
+    setCompleting(true);
+    try {
+      await api.articles.updateProgress(article.id, {
+        progressPct: 100,
+        isCompleted: true,
+      });
+      setIsCompleted(true);
+      await refreshProfile();
+    } catch {
+      // Ignore silent failure
+    } finally {
+      setCompleting(false);
+    }
+  };
 
   const handleChangeFontSize = (sz: 'sm' | 'base' | 'lg' | 'xl') => {
     setFontSize(sz);
@@ -297,8 +337,44 @@ export const WebReader: React.FC<WebReaderProps> = ({
             />
           )}
 
-          <footer className="max-w-reader mx-auto mt-14 pt-6 border-t-2 border-[#141413]/15 dark:border-[#3A3E4C] text-center text-xs font-mono font-semibold opacity-70">
-            One-Click Sentence Mining: Highlight any word or phrase with your cursor to save it to your Vault.
+          <footer className="max-w-reader mx-auto mt-14 pt-6 border-t-2 border-[#141413]/15 dark:border-[#3A3E4C] space-y-5 text-center">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl border-2 border-[#141413] dark:border-[#3A3E4C] bg-canvas-cream/70 dark:bg-ink-surface">
+              <div className="text-left">
+                <div className="text-xs font-extrabold uppercase tracking-wider text-violet-brand dark:text-violet-bright">
+                  Daily Reading Goal
+                </div>
+                <div className="text-xs font-medium opacity-80">
+                  {isCompleted
+                    ? 'Article marked as finished for today.'
+                    : 'Finished reading? Claim your daily reading XP.'}
+                </div>
+              </div>
+
+              {isCompleted ? (
+                <span className="brutal-pill-btn inline-flex items-center gap-1.5 px-4 py-2 text-xs font-extrabold bg-emerald-100 text-emerald-950 shrink-0">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-700" aria-hidden="true" />
+                  <span>Completed (+50 XP)</span>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleCompleteReading}
+                  disabled={completing}
+                  className="brutal-pill-btn inline-flex items-center gap-2 px-5 py-2 text-xs font-extrabold bg-violet-brand hover:bg-violet-hover text-white shrink-0 disabled:opacity-50"
+                >
+                  {completing ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
+                  )}
+                  <span>Complete Reading (+50 XP)</span>
+                </button>
+              )}
+            </div>
+
+            <p className="text-xs font-mono font-semibold opacity-70">
+              One-Click Sentence Mining: Highlight any word or phrase with your cursor to save it to your Vault.
+            </p>
           </footer>
         </article>
 

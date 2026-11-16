@@ -69,11 +69,14 @@ export const DashboardPage: React.FC = () => {
 
   const {
     streak,
+    xp,
     retentionDistribution,
     contributionHeatmap,
     leechWatchlist,
     tagDistribution,
   } = dashboardData;
+
+  const xpInfo = xp || { todayXp: 0, totalXp: 0, level: 1, levelProgressPct: 0, xpToNextLevel: 250 };
 
   const goalPercent = Math.min(
     100,
@@ -94,16 +97,32 @@ export const DashboardPage: React.FC = () => {
     <div className="min-h-[calc(100vh-4rem)] bg-canvas-cream dark:bg-ink-dark py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* HEADER */}
-        <div>
-          <span className="text-xs font-extrabold uppercase tracking-widest text-ink-muted dark:text-ink-pewter block mb-1">
-            SPACED REPETITION TELEMETRY
-          </span>
-          <h1 className="font-sans text-3xl sm:text-4xl font-extrabold tracking-tight text-[#141413] dark:text-ink-ivory">
-            Mastery &amp; Retention Analytics
-          </h1>
-          <p className="text-xs font-mono font-semibold text-ink-muted dark:text-ink-pewter mt-1">
-            Tracking your long-term reading memory, idiom vault expansion, and SuperMemo-2 stability.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <span className="text-xs font-extrabold uppercase tracking-widest text-ink-muted dark:text-ink-pewter block mb-1">
+              SPACED REPETITION TELEMETRY
+            </span>
+            <h1 className="font-sans text-3xl sm:text-4xl font-extrabold tracking-tight text-[#141413] dark:text-ink-ivory">
+              Mastery &amp; Retention Analytics
+            </h1>
+            <p className="text-xs font-mono font-semibold text-ink-muted dark:text-ink-pewter mt-1">
+              Tracking your long-term reading memory, idiom vault expansion, and SuperMemo-2 stability.
+            </p>
+          </div>
+
+          <div className="brutal-card-sm px-4 py-2.5 bg-violet-tint dark:bg-ink-surface flex items-center gap-3 self-start sm:self-auto">
+            <span className="px-2.5 py-0.5 rounded-full bg-violet-brand text-white text-xs font-mono font-extrabold">
+              LVL {xpInfo.level}
+            </span>
+            <div className="text-xs font-mono">
+              <div className="font-extrabold text-[#141413] dark:text-ink-ivory">
+                {xpInfo.totalXp} Total XP
+              </div>
+              <div className="text-[11px] text-violet-brand dark:text-violet-bright font-bold">
+                +{xpInfo.todayXp} XP today
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* TOP STATS CARDS */}
