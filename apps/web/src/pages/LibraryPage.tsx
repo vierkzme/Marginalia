@@ -27,7 +27,6 @@ export const LibraryPage: React.FC = () => {
     todayCompletedReviews: 0,
     todayWordsMined: 0,
     dueCardsCount: 0,
-    vocabTotal: 0,
   });
 
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -58,7 +57,6 @@ export const LibraryPage: React.FC = () => {
         todayCompletedReviews: 0,
         todayWordsMined: 0,
         dueCardsCount: 0,
-        vocabTotal: 0,
       };
 
       if (dashRes.status === 'fulfilled') {
@@ -66,12 +64,6 @@ export const LibraryPage: React.FC = () => {
         if (dash?.streak) {
           nextStats.todayCompletedReviews = dash.streak.todayCompletedReviews || 0;
           nextStats.todayWordsMined = dash.streak.todayWordsMined || 0;
-        }
-        if (Array.isArray(dash?.retentionDistribution)) {
-          nextStats.vocabTotal = dash.retentionDistribution.reduce(
-            (acc: number, s: any) => acc + (s.count || 0),
-            0
-          );
         }
       }
 
@@ -250,22 +242,13 @@ export const LibraryPage: React.FC = () => {
                       {heroArticle.title}
                     </h3>
 
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center">
-                        <div className="flex -space-x-2">
-                          <span className="w-7 h-7 rounded-full border-2 border-[#141413] bg-amber-300 text-[#141413] text-[10px] font-extrabold flex items-center justify-center">
-                            Id
-                          </span>
-                          <span className="w-7 h-7 rounded-full border-2 border-[#141413] bg-sky-300 text-[#141413] text-[10px] font-extrabold flex items-center justify-center">
-                            Pv
-                          </span>
-                          <span className="w-7 h-7 rounded-full border-2 border-[#141413] bg-rose-300 text-[#141413] text-[10px] font-extrabold flex items-center justify-center">
-                            Ac
-                          </span>
-                        </div>
-                        <span className="ml-2 px-2 py-0.5 rounded-full border border-[#141413] bg-canvas-cream dark:bg-ink-surface text-[11px] font-mono font-bold text-[#141413] dark:text-ink-ivory">
-                          +{dailyStats.vocabTotal}
-                        </span>
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div className="flex flex-wrap items-center gap-2 text-xs font-mono font-semibold text-ink-muted dark:text-ink-pewter">
+                        <CoverageBadge percentage={heroArticle.initialCoveragePct || 0} size="sm" />
+                        <span>•</span>
+                        <span>{heroArticle.totalWordCount} words</span>
+                        <span>•</span>
+                        <span>{heroArticle.uniqueLemmaCount} lemmas</span>
                       </div>
 
                       <button
