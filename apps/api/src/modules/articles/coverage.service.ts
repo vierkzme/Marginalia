@@ -69,17 +69,17 @@ export async function calculateArticleCoverage(
   );
 
   let difficultyTier: 'OPTIMAL' | 'CHALLENGING' | 'HEAVY' = 'CHALLENGING';
-  let summaryMessage = `${Math.round(percentage)}% kosakata di artikel ini sudah ada di Vault kamu`;
+  let summaryMessage = `${Math.round(percentage)}% of vocabulary in this article is already in your Vault`;
 
   if (percentage >= 95.0) {
     difficultyTier = 'OPTIMAL';
-    summaryMessage = `${Math.round(percentage)}% kosakata di artikel ini sudah ada di Vault kamu: Sangat pas untuk dibaca!`;
+    summaryMessage = `${Math.round(percentage)}% of vocabulary in this article is already in your Vault: Ideal for reading!`;
   } else if (percentage >= 90.0) {
     difficultyTier = 'CHALLENGING';
-    summaryMessage = `${Math.round(percentage)}% kosakata dikuasai: Bacaan menantang, siapkan Sentence Mining.`;
+    summaryMessage = `${Math.round(percentage)}% vocabulary known: Challenging read — get ready for Sentence Mining.`;
   } else {
     difficultyTier = 'HEAVY';
-    summaryMessage = `${Math.round(percentage)}% kosakata dikuasai: Bacaan cukup berat, banyak istilah baru.`;
+    summaryMessage = `${Math.round(percentage)}% vocabulary known: Heavy read with many new terms.`;
   }
 
   return {

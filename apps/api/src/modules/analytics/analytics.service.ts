@@ -93,28 +93,28 @@ export async function getDashboardAnalytics(userId: string) {
   const retentionDistribution = [
     {
       stage: 'NEW',
-      label: 'New (Baru Disimpan)',
+      label: 'New (Newly Saved)',
       count: stageCounts.NEW,
       percentage: Math.round((stageCounts.NEW / totalVocab) * 1000) / 10,
       color: '#94A3B8',
     },
     {
       stage: 'LEARNING',
-      label: 'Learning (< 7 Hari)',
+      label: 'Learning (< 7 Days)',
       count: stageCounts.LEARNING,
       percentage: Math.round((stageCounts.LEARNING / totalVocab) * 1000) / 10,
       color: '#F59E0B',
     },
     {
       stage: 'YOUNG',
-      label: 'Young (7-21 Hari)',
+      label: 'Young (7-21 Days)',
       count: stageCounts.YOUNG,
       percentage: Math.round((stageCounts.YOUNG / totalVocab) * 1000) / 10,
       color: '#3B82F6',
     },
     {
       stage: 'MATURE',
-      label: 'Mature (> 21 Hari)',
+      label: 'Mature (> 21 Days)',
       count: stageCounts.MATURE,
       percentage: Math.round((stageCounts.MATURE / totalVocab) * 1000) / 10,
       color: '#10B981',

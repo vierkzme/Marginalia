@@ -1,5 +1,5 @@
 import { prisma } from '../src/config/db';
-import { generateSeedData, memoryStore } from '../src/config/store';
+import { generateSeedData, LEGACY_SEED_NOTE_MAP, memoryStore } from '../src/config/store';
 
 async function main() {
   const seed = generateSeedData();
@@ -96,6 +96,13 @@ async function main() {
           lastReviewedAt: v.lastReviewedAt ? new Date(v.lastReviewedAt) : null,
         },
         update: {},
+      });
+    }
+
+    for (const [legacyNote, englishNote] of Object.entries(LEGACY_SEED_NOTE_MAP)) {
+      await prisma.vocabItem.updateMany({
+        where: { userId: demoUser.id, personalNote: legacyNote },
+        data: { personalNote: englishNote },
       });
     }
 

@@ -100,7 +100,7 @@ export async function getArticleReaderView(userId: string, articleId: string) {
       totalWordCount: articleRecord.totalWordCount,
       uniqueLemmaCount: articleRecord.uniqueLemmaCount,
       coveragePercentage: articleRecord.initialCoveragePct,
-      summaryMessage: `${Math.round(articleRecord.initialCoveragePct)}% kosakata di artikel ini sudah ada di Vault kamu`,
+      summaryMessage: `${Math.round(articleRecord.initialCoveragePct)}% of vocabulary in this article is already in your Vault`,
       readingProgressPct: articleRecord.readingProgressPct,
       isCompleted: articleRecord.isCompleted,
     },

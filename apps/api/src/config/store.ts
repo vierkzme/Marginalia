@@ -353,7 +353,7 @@ export function generateSeedData(): SeedDataStore {
       partOfSpeech: 'IDIOM',
       phonetic: '/baɪt ðə ˈbʊlɪt/',
       definition: 'To face a difficult or unpleasant situation with courage and get it over with.',
-      personalNote: 'Sering dipakai saat terpaksa refactor arsitektur database legacy.',
+      personalNote: 'Often used when forced to refactor legacy database architecture.',
       masteryStage: 'LEARNING',
       repetition: 1,
       easinessFactor: 2.5,
@@ -372,7 +372,7 @@ export function generateSeedData(): SeedDataStore {
       partOfSpeech: 'PHRASAL_VERB',
       phonetic: '/rʌn ˈɪntuː/',
       definition: 'To encounter unexpected problems or difficulties.',
-      personalNote: 'Kata kerja frasa penting untuk situasi bugs dan hambatan teknis.',
+      personalNote: 'Essential phrasal verb for unexpected bugs and technical blockers.',
       masteryStage: 'LEARNING',
       repetition: 0,
       easinessFactor: 1.46,
@@ -391,7 +391,7 @@ export function generateSeedData(): SeedDataStore {
       partOfSpeech: 'IDIOM',
       phonetic: '/swiːp ˈʌndər ðə rʌɡ/',
       definition: 'To hide or ignore an embarrassing or difficult problem instead of dealing with it.',
-      personalNote: 'Jangan menyembunyikan technical debt di backlog.',
+      personalNote: 'Avoid hiding technical debt in the backlog.',
       masteryStage: 'LEARNING',
       repetition: 0,
       easinessFactor: 1.6,
@@ -410,7 +410,7 @@ export function generateSeedData(): SeedDataStore {
       partOfSpeech: 'PHRASAL_VERB',
       phonetic: '/brʌʃ ʌp ɒn/',
       definition: 'To refresh one\'s memory or knowledge of something previously learned.',
-      personalNote: 'Dipakai saat belajar kembali konsep algoritma atau tools.',
+      personalNote: 'Used when revisiting algorithms or developer tooling concepts.',
       masteryStage: 'YOUNG',
       repetition: 3,
       easinessFactor: 2.5,
@@ -429,7 +429,7 @@ export function generateSeedData(): SeedDataStore {
       partOfSpeech: 'IDIOM',
       phonetic: '/hɪt ə wɔːl/',
       definition: 'To reach a point where no more progress can be made due to exhaustion or barriers.',
-      personalNote: 'Buntu saat troubleshooting sistem.',
+      personalNote: 'Getting stuck while troubleshooting a system.',
       masteryStage: 'NEW',
       repetition: 0,
       easinessFactor: 2.5,
@@ -448,7 +448,7 @@ export function generateSeedData(): SeedDataStore {
       partOfSpeech: 'IDIOM',
       phonetic: '/breɪk njuː ɡraʊnd/',
       definition: 'To discover or innovate something new that has never been done before.',
-      personalNote: 'Pencapaian inovasi atau riset baru.',
+      personalNote: 'Achieving a breakthrough in research or innovation.',
       masteryStage: 'MATURE',
       repetition: 5,
       easinessFactor: 2.6,
@@ -467,7 +467,7 @@ export function generateSeedData(): SeedDataStore {
       partOfSpeech: 'NOUN',
       phonetic: '/ˈbɒtl.nek/',
       definition: 'A point of congestion in a system that stops or slows down performance.',
-      personalNote: 'Istilah arsitektur sistem.',
+      personalNote: 'Systems architecture term.',
       masteryStage: 'MATURE',
       repetition: 4,
       easinessFactor: 2.5,
@@ -638,6 +638,36 @@ export function generateSeedData(): SeedDataStore {
   };
 }
 
+/** Maps legacy Indonesian demo notes to English equivalents for seamless local migration. */
+export const LEGACY_SEED_NOTE_MAP: Record<string, string> = {
+  'Sering dipakai saat terpaksa refactor arsitektur database legacy.':
+    'Often used when forced to refactor legacy database architecture.',
+  'Kata kerja frasa penting untuk situasi bugs dan hambatan teknis.':
+    'Essential phrasal verb for unexpected bugs and technical blockers.',
+  'Jangan menyembunyikan technical debt di backlog.':
+    'Avoid hiding technical debt in the backlog.',
+  'Dipakai saat belajar kembali konsep algoritma atau tools.':
+    'Used when revisiting algorithms or developer tooling concepts.',
+  'Buntu saat troubleshooting sistem.':
+    'Getting stuck while troubleshooting a system.',
+  'Pencapaian inovasi atau riset baru.':
+    'Achieving a breakthrough in research or innovation.',
+  'Istilah arsitektur sistem.':
+    'Systems architecture term.',
+};
+
+/** Replaces legacy Indonesian seeded notes with English equivalents in place. */
+function normalizeLegacySeedNotes(store: SeedDataStore): boolean {
+  let updated = false;
+  for (const item of store.vocabItems || []) {
+    if (item.personalNote && LEGACY_SEED_NOTE_MAP[item.personalNote]) {
+      item.personalNote = LEGACY_SEED_NOTE_MAP[item.personalNote];
+      updated = true;
+    }
+  }
+  return updated;
+}
+
 class MemoryStore {
   private data: SeedDataStore;
   private filePath: string;
@@ -651,7 +681,11 @@ class MemoryStore {
     try {
       if (fs.existsSync(this.filePath)) {
         const raw = fs.readFileSync(this.filePath, 'utf-8');
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw) as SeedDataStore;
+        if (normalizeLegacySeedNotes(parsed)) {
+          this.save(parsed);
+        }
+        return parsed;
       }
     } catch {
       // Fallback to fresh seed
