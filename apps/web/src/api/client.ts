@@ -2,6 +2,33 @@ const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhos
 
 let authToken: string | null = localStorage.getItem('criv_auth_token');
 
+export interface ReaderPreferences {
+  fontSize: 'sm' | 'base' | 'lg' | 'xl';
+  readingTheme: 'light' | 'sepia' | 'dark';
+}
+
+const READER_PREFS_KEY = 'marginalia_reader_prefs';
+
+export function getReaderPreferences(): ReaderPreferences {
+  try {
+    const raw = localStorage.getItem(READER_PREFS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        fontSize: ['sm', 'base', 'lg', 'xl'].includes(parsed.fontSize) ? parsed.fontSize : 'lg',
+        readingTheme: ['light', 'sepia', 'dark'].includes(parsed.readingTheme) ? parsed.readingTheme : 'light',
+      };
+    }
+  } catch {
+    // Ignore parse error
+  }
+  return { fontSize: 'lg', readingTheme: 'light' };
+}
+
+export function setReaderPreferences(prefs: ReaderPreferences): void {
+  localStorage.setItem(READER_PREFS_KEY, JSON.stringify(prefs));
+}
+
 export function setAuthToken(token: string | null) {
   authToken = token;
   if (token) {
@@ -41,12 +68,13 @@ export async function apiRequest<T = any>(
 
   const json = await response.json().catch(() => ({}));
   if (!response.ok || json.success === false) {
+    if (response.status === 401 && !endpoint.includes('/auth/login')) {
+      setAuthToken(null);
+    }
     const errorMsg = json.error?.message || `Request failed with status ${response.status}`;
     throw new Error(errorMsg);
   }
 
-  // Ensure returned object satisfies both envelope structure ({ success: true, data })
-  // and direct unwrap consumers
   let result: any = { success: true, data: json };
   if (json && typeof json === 'object') {
     if (json.data !== undefined) {
@@ -65,9 +93,19 @@ export const api = {
   auth: {
     login: (credentials: { email: string; password: string }) =>
       apiRequest('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
-    register: (data: { email: string; password: string; fullName: string }) =>
-      apiRequest('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+    register: (data: {
+      email: string;
+      password: string;
+      fullName: string;
+      dailyReviewGoal?: number;
+    }) => apiRequest('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+    demoLogin: () => apiRequest('/auth/demo', { method: 'POST' }),
     me: () => apiRequest('/auth/me'),
+    updateProfile: (payload: {
+      fullName?: string;
+      dailyReviewGoal?: number;
+      newPassword?: string;
+    }) => apiRequest('/auth/me', { method: 'PUT', body: JSON.stringify(payload) }),
   },
   articles: {
     list: () => apiRequest('/articles'),
@@ -101,8 +139,10 @@ export const api = {
   },
   reviews: {
     getDue: () => apiRequest('/reviews/due'),
-    grade: (vocabId: string, payload: { button: 'AGAIN' | 'HARD' | 'GOOD' | 'EASY'; responseTimeMs?: number }) =>
-      apiRequest(`/reviews/${vocabId}/grade`, { method: 'POST', body: JSON.stringify(payload) }),
+    grade: (
+      vocabId: string,
+      payload: { button: 'AGAIN' | 'HARD' | 'GOOD' | 'EASY'; responseTimeMs?: number }
+    ) => apiRequest(`/reviews/${vocabId}/grade`, { method: 'POST', body: JSON.stringify(payload) }),
   },
   analytics: {
     getDashboard: () => apiRequest('/analytics/dashboard'),
