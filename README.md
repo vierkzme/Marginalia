@@ -48,7 +48,7 @@ Automated lapse tracking flags any card failing four or more times ($\ge 4$ laps
 * **Leech Watchlist:** Surfaces problematic vocabulary requiring alternative context sentences or mnemonic assistance.
 
 ### 7. Authentication, Instant Demo Mode & Preferences
-* **Account Authentication & Isolation:** Supports JWT registration, login, and isolated per-user article/vocabulary vaults, plus one-click entry into the seeded **Demo Account** (`raka@engineering.dev`).
+* **Account Authentication & Isolation:** Supports JWT registration, login, and isolated per-user article/vocabulary vaults, plus one-click entry into the seeded **Demo Account** (`ardy@vierkzme.dev`).
 * **Workspace & Reader Settings:** Customize your display name, daily Cloze review goal (`5`–`200` cards/day), light/dark workspace theme, default reader font size, and default paper theme.
 
 ---
