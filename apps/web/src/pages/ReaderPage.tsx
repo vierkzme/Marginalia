@@ -23,7 +23,8 @@ export const ReaderPage: React.FC = () => {
     }
     setError(null);
 
-    api.articles.getReaderView(id)
+    api.articles
+      .getReaderView(id)
       .then((res: any) => {
         const payload = res?.data || res;
         if (payload && (payload.article || payload.paragraphs)) {
@@ -46,10 +47,10 @@ export const ReaderPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-6 bg-paper-light dark:bg-ink-dark">
-        <Loader2 className="w-8 h-8 animate-spin text-editorial-rust mb-3" />
-        <p className="font-serif text-ink-graphite dark:text-ink-pewter text-sm">
-          Preparing distraction-free reader and highlights...
+      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-6 bg-canvas-cream dark:bg-ink-dark">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-brand mb-3" />
+        <p className="font-mono font-semibold text-ink-muted dark:text-ink-pewter text-sm">
+          Preparing reader sheet and smart highlights...
         </p>
       </div>
     );
@@ -57,18 +58,21 @@ export const ReaderPage: React.FC = () => {
 
   if (error || !readerData) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-6 bg-paper-light dark:bg-ink-dark text-center">
-        <AlertCircle className="w-10 h-10 text-rose-600 mb-3" />
-        <h2 className="font-serif text-2xl font-bold mb-2">Could Not Open Article</h2>
-        <p className="text-sm text-ink-graphite dark:text-ink-pewter mb-6 max-w-md">
-          {error || 'Article content could not be located in your Vault storage.'}
-        </p>
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded font-semibold text-sm bg-editorial-rust text-white hover:bg-editorial-rust/90 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back to Library
-        </Link>
+      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-6 bg-canvas-cream dark:bg-ink-dark text-center">
+        <div className="brutal-card p-8 max-w-md space-y-4">
+          <AlertCircle className="w-10 h-10 text-rose-600 mx-auto" />
+          <h1 className="font-sans text-2xl font-extrabold">Could Not Open Article</h1>
+          <p className="text-sm text-ink-muted dark:text-ink-pewter">
+            {error || 'Article content could not be located in your Vault storage.'}
+          </p>
+          <Link
+            to="/"
+            className="brutal-pill-btn inline-flex items-center gap-2 px-5 py-2 text-sm font-extrabold bg-violet-brand text-white hover:bg-violet-hover"
+          >
+            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+            <span>Back to Library</span>
+          </Link>
+        </div>
       </div>
     );
   }

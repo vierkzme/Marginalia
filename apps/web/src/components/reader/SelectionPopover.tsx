@@ -36,14 +36,15 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
     setLoading(true);
     setError(null);
 
-    api.vocab.previewSelection({
-      articleId,
-      sentenceId: selectionData.sentenceId,
-      paragraphText: selectionData.sentenceText,
-      selectedText: selectionData.selectedText,
-      selectionStartInSentence: selectionData.startOffset,
-      selectionEndInSentence: selectionData.endOffset,
-    })
+    api.vocab
+      .previewSelection({
+        articleId,
+        sentenceId: selectionData.sentenceId,
+        paragraphText: selectionData.sentenceText,
+        selectedText: selectionData.selectedText,
+        selectionStartInSentence: selectionData.startOffset,
+        selectionEndInSentence: selectionData.endOffset,
+      })
       .then((res: any) => {
         if (!isMounted) return;
         const d = res?.data || res;
@@ -52,9 +53,10 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
           setLemma(d.lemma || selectionData.selectedText.toLowerCase());
           setPartOfSpeech(d.partOfSpeech || 'expression');
           setPhonetic(d.phonetic || '');
-          setDefinition(d.definition || '');
-          if (Array.isArray(d.tagNames) && d.tagNames.length > 0) {
-            setSelectedTags(d.tagNames);
+          setDefinition(d.definition || d.dictionary?.definition || '');
+          const suggested = d.tagNames || d.dictionary?.suggestedTags;
+          if (Array.isArray(suggested) && suggested.length > 0) {
+            setSelectedTags(suggested);
           }
         }
       })
@@ -122,7 +124,6 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
     }
   };
 
-  // Keyboard shortcut: Escape to close, Enter to save if not focused on textarea
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -133,133 +134,153 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  // Position popover safely relative to selection
-  const topPos = Math.max(16, selectionData.rect.bottom + window.scrollY + 10);
+  const topPos = Math.max(16, selectionData.rect.bottom + window.scrollY + 12);
   const leftPos = Math.max(
     16,
-    Math.min(
-      selectionData.rect.left + window.scrollX,
-      window.innerWidth - 380
-    )
+    Math.min(selectionData.rect.left + window.scrollX, window.innerWidth - 390)
   );
 
   return (
     <div
       style={{ top: `${topPos}px`, left: `${leftPos}px` }}
-      className="absolute z-50 w-88 sm:w-96 rounded-xl border border-[#D9D3C7] dark:border-[#2E323B] bg-paper-light dark:bg-ink-dark shadow-2xl p-4 text-ink-charcoal dark:text-ink-ivory animate-in fade-in zoom-in-95 duration-150"
+      role="dialog"
+      aria-label="One-Click Sentence Mining"
+      className="absolute z-50 w-[340px] sm:w-96 rounded-3xl border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated shadow-brutal-lg dark:shadow-brutal-dark p-5 text-[#141413] dark:text-ink-ivory"
     >
-      <div className="flex items-center justify-between border-b border-[#E7E2D8] dark:border-[#262930] pb-2.5 mb-3">
-        <div className="flex items-center gap-1.5 text-xs font-mono font-semibold uppercase tracking-wider text-editorial-rust dark:text-editorial-orange">
-          <PlusCircle className="w-3.5 h-3.5" />
-          <span>One-Click Sentence Mining</span>
+      <div className="flex items-center justify-between border-b-2 border-[#141413]/15 dark:border-[#3A3E4C] pb-3 mb-3">
+        <div className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-violet-brand dark:text-violet-bright">
+          <PlusCircle className="w-4 h-4" aria-hidden="true" />
+          <span>Sentence Mining</span>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="text-ink-graphite hover:text-ink-charcoal dark:text-ink-pewter dark:hover:text-ink-ivory p-0.5 rounded transition-colors"
+          className="brutal-pill-btn p-1 bg-white dark:bg-ink-surface text-[#141413] dark:text-ink-ivory"
           aria-label="Close popover"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" aria-hidden="true" />
         </button>
       </div>
 
       {loading ? (
-        <div className="py-8 flex flex-col items-center justify-center text-xs text-ink-graphite dark:text-ink-pewter">
-          <Loader2 className="w-6 h-6 animate-spin text-editorial-rust mb-2" />
-          <span>Analyzing context & dictionary lookup...</span>
+        <div className="py-8 flex flex-col items-center justify-center text-xs text-ink-muted dark:text-ink-pewter">
+          <Loader2 className="w-6 h-6 animate-spin text-violet-brand mb-2" />
+          <span className="font-semibold">Analyzing context &amp; dictionary lookup...</span>
         </div>
       ) : savedSuccess ? (
         <div className="py-6 flex flex-col items-center justify-center text-emerald-700 dark:text-emerald-400">
-          <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center mb-2">
-            <Check className="w-6 h-6" />
+          <div className="w-11 h-11 rounded-full border-2 border-[#141413] bg-violet-brand text-white flex items-center justify-center mb-2 shadow-brutal-xs">
+            <Check className="w-6 h-6 stroke-[3]" aria-hidden="true" />
           </div>
-          <span className="font-serif font-bold text-base">Saved to Vault!</span>
-          <span className="text-xs text-ink-graphite dark:text-ink-pewter font-mono mt-1">
-            Highlighted for future reading & SM-2 review.
+          <span className="font-sans font-extrabold text-base text-[#141413] dark:text-ink-ivory">
+            Saved to Vault!
+          </span>
+          <span className="text-xs text-ink-muted dark:text-ink-pewter font-mono mt-1">
+            Highlighted for future reading &amp; SM-2 review.
           </span>
         </div>
       ) : (
         <form onSubmit={handleSave} className="space-y-3 text-xs">
           {error && (
-            <div className="p-2 rounded bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900 text-xs">
+            <div className="p-2.5 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-900 dark:text-rose-200 border border-rose-400 font-bold text-xs">
               {error}
             </div>
           )}
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="font-mono text-[11px] uppercase tracking-wider text-ink-graphite dark:text-ink-pewter">
+              <label
+                htmlFor="mining-lemma"
+                className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted dark:text-ink-pewter"
+              >
                 Lemma (Base Form)
               </label>
-              <span className="text-[10px] font-mono text-ink-graphite dark:text-ink-pewter">
+              <span className="text-[10px] font-mono text-ink-muted dark:text-ink-pewter">
                 Surface: "{surfaceForm}"
               </span>
             </div>
             <input
+              id="mining-lemma"
               type="text"
               value={lemma}
               onChange={(e) => setLemma(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-ink-charcoal dark:text-ink-ivory font-semibold text-sm focus:outline-hidden focus:ring-2 focus:ring-editorial-rust"
+              className="brutal-input w-full px-3 py-1.5 rounded-xl font-bold text-sm"
               required
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <label className="font-mono text-[11px] uppercase tracking-wider text-ink-graphite dark:text-ink-pewter block mb-1">
+              <label
+                htmlFor="mining-pos"
+                className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted dark:text-ink-pewter block mb-1"
+              >
                 Part of Speech
               </label>
               <input
+                id="mining-pos"
                 type="text"
                 value={partOfSpeech}
                 onChange={(e) => setPartOfSpeech(e.target.value)}
-                className="w-full px-2 py-1 rounded border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-ink-charcoal dark:text-ink-ivory font-mono text-xs"
+                className="brutal-input w-full px-2.5 py-1.5 rounded-xl font-mono text-xs"
               />
             </div>
             <div>
-              <label className="font-mono text-[11px] uppercase tracking-wider text-ink-graphite dark:text-ink-pewter block mb-1">
+              <label
+                htmlFor="mining-phonetic"
+                className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted dark:text-ink-pewter block mb-1"
+              >
                 Phonetic IPA
               </label>
               <input
+                id="mining-phonetic"
                 type="text"
                 value={phonetic}
                 onChange={(e) => setPhonetic(e.target.value)}
                 placeholder="/.../"
-                className="w-full px-2 py-1 rounded border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-ink-charcoal dark:text-ink-ivory placeholder:text-ink-graphite/60 dark:placeholder:text-ink-pewter/60 font-mono text-xs"
+                className="brutal-input w-full px-2.5 py-1.5 rounded-xl font-mono text-xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="font-mono text-[11px] uppercase tracking-wider text-ink-graphite dark:text-ink-pewter block mb-1">
+            <label
+              htmlFor="mining-definition"
+              className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted dark:text-ink-pewter block mb-1"
+            >
               Definition (Meaning in Context) *
             </label>
             <textarea
+              id="mining-definition"
               rows={2}
               value={definition}
               onChange={(e) => setDefinition(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-ink-charcoal dark:text-ink-ivory placeholder:text-ink-graphite/60 dark:placeholder:text-ink-pewter/60 text-xs focus:outline-hidden focus:ring-2 focus:ring-editorial-rust"
+              className="brutal-input w-full px-3 py-1.5 rounded-xl text-xs"
               placeholder="Explain the meaning of this word or idiom..."
               required
             />
           </div>
 
           <div>
-            <label className="font-mono text-[11px] uppercase tracking-wider text-ink-graphite dark:text-ink-pewter block mb-1">
+            <label
+              htmlFor="mining-note"
+              className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted dark:text-ink-pewter block mb-1"
+            >
               Personal Note / Mnemonic (Optional)
             </label>
             <input
+              id="mining-note"
               type="text"
               value={personalNote}
               onChange={(e) => setPersonalNote(e.target.value)}
               placeholder="e.g. Heard in episode 3, metaphor for risk"
-              className="w-full px-2.5 py-1 rounded border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-ink-charcoal dark:text-ink-ivory placeholder:text-ink-graphite/60 dark:placeholder:text-ink-pewter/60 text-xs"
+              className="brutal-input w-full px-3 py-1.5 rounded-xl text-xs"
             />
           </div>
 
           <div>
-            <div className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-ink-graphite dark:text-ink-pewter mb-1.5">
-              <Tag className="w-3 h-3" />
+            <div className="flex items-center gap-1 font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted dark:text-ink-pewter mb-1.5">
+              <Tag className="w-3 h-3" aria-hidden="true" />
               <span>Tags</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -270,10 +291,11 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
                     key={t}
                     type="button"
                     onClick={() => toggleTag(t)}
-                    className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${
+                    aria-pressed={isSelected}
+                    className={`px-2.5 py-0.5 rounded-full border border-[#141413] text-[11px] font-bold transition-colors ${
                       isSelected
-                        ? 'bg-editorial-rust text-white font-semibold'
-                        : 'bg-paper-cream dark:bg-ink-elevated text-ink-graphite dark:text-ink-pewter hover:bg-paper-cream/80'
+                        ? 'bg-violet-brand text-white'
+                        : 'bg-canvas-cream dark:bg-ink-surface text-[#141413] dark:text-ink-ivory hover:bg-violet-tint'
                     }`}
                   >
                     {t}
@@ -283,24 +305,24 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
             </div>
           </div>
 
-          <div className="pt-2 flex items-center justify-between border-t border-[#E7E2D8] dark:border-[#262930]">
-            <span className="text-[10px] text-ink-graphite dark:text-ink-pewter font-mono">
-              Press Enter to save
+          <div className="pt-3 flex items-center justify-between border-t-2 border-[#141413]/15 dark:border-[#3A3E4C]">
+            <span className="text-[10px] text-ink-muted dark:text-ink-pewter font-mono font-semibold">
+              Esc to close
             </span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 rounded text-xs text-ink-graphite hover:text-ink-charcoal dark:text-ink-pewter dark:hover:text-ink-ivory transition-colors"
+                className="brutal-pill-btn px-3.5 py-1.5 text-xs font-bold bg-white dark:bg-ink-surface text-[#141413] dark:text-ink-ivory"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded font-semibold text-xs bg-editorial-rust text-white hover:bg-editorial-rust/90 disabled:opacity-50 transition-colors shadow-xs"
+                className="brutal-pill-btn inline-flex items-center gap-1.5 px-4 py-1.5 font-extrabold text-xs bg-violet-brand hover:bg-violet-hover text-white disabled:opacity-50"
               >
-                {saving && <Loader2 className="w-3 h-3 animate-spin" />}
+                {saving && <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />}
                 <span>Save to Vault</span>
               </button>
             </div>

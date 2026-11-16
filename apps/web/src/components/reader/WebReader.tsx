@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
-import { ArrowLeft, ExternalLink, BookMarked, X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ArrowLeft, ExternalLink, BookMarked, X, Star, Check, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SmartHighlightedSentence, SentenceHighlight } from './SmartHighlightedSentence';
-import { CoverageBadge } from '../importer/CoverageBadge';
 import { useTextSelection } from '../../hooks/useTextSelection';
 import { SelectionPopover } from './SelectionPopover';
+import { BauhausHeaderArt } from '../common/BauhausHeaderArt';
 
 export interface WebReaderProps {
   article: {
@@ -49,6 +49,16 @@ export const WebReader: React.FC<WebReaderProps> = ({
     new Map(allHighlights.map((h) => [h.vocabItemId, h])).values()
   );
 
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && inspectedWord) {
+        setInspectedWord(null);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [inspectedWord]);
+
   const getFontSizeClass = () => {
     switch (fontSize) {
       case 'sm':
@@ -62,152 +72,191 @@ export const WebReader: React.FC<WebReaderProps> = ({
     }
   };
 
-  const getThemeBgClass = () => {
+  const getSheetThemeClass = () => {
     switch (readingTheme) {
       case 'sepia':
         return 'bg-[#F4ECD8] text-[#1C1917]';
       case 'dark':
-        return 'bg-ink-dark text-ink-ivory';
+        return 'bg-[#16181F] text-[#F6F3EB]';
       case 'light':
       default:
-        return 'bg-paper-light dark:bg-ink-dark text-ink-charcoal dark:text-ink-ivory';
+        return 'bg-white dark:bg-ink-elevated text-[#141413] dark:text-ink-ivory';
     }
   };
 
+  const coverageTierLabel =
+    article.coveragePercentage >= 95
+      ? 'OPTIMAL INPUT'
+      : article.coveragePercentage >= 90
+        ? 'CHALLENGING'
+        : 'HEAVY LOAD';
+
+  const sourceDomain = article.sourceUrl
+    ? (() => {
+        try {
+          return new URL(article.sourceUrl).hostname.replace(/^www\./, '');
+        } catch {
+          return article.sourceType;
+        }
+      })()
+    : article.sourceType === 'RAW_TEXT'
+      ? 'Personal Text Note'
+      : article.sourceType;
+
   return (
-    <div className={`min-h-[calc(100vh-4rem)] ${getThemeBgClass()} transition-colors duration-200`}>
-      <div className="sticky top-16 z-30 border-b border-[#E7E2D8] dark:border-[#262930] bg-inherit/95 backdrop-blur-sm px-4 sm:px-8 py-2.5">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+    <div className="min-h-[calc(100vh-4rem)] bg-canvas-cream dark:bg-ink-dark pb-12">
+      {/* HERO BAUHAUS BANNER + FLOATING READER TOOLBAR (Screen 3 inspiration) */}
+      <div className="relative border-b-2 border-[#141413] dark:border-[#3A3E4C] overflow-hidden bg-[#FDFBF7]">
+        <BauhausHeaderArt variant="mondrian" className="w-full h-44 sm:h-56" />
+
+        <div className="absolute inset-x-0 top-4 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            {/* Circular Back Button */}
             <button
               type="button"
               onClick={() => navigate('/')}
-              className="p-1.5 rounded hover:bg-paper-cream dark:hover:bg-ink-elevated text-ink-graphite hover:text-ink-charcoal dark:text-ink-pewter dark:hover:text-ink-ivory transition-colors"
               aria-label="Back to Library"
+              className="brutal-pill-btn w-10 h-10 bg-white dark:bg-ink-elevated text-[#141413] dark:text-ink-ivory flex items-center justify-center hover:bg-violet-tint"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5" aria-hidden="true" />
             </button>
-            <span className="font-serif font-bold text-sm sm:text-base truncate max-w-[200px] sm:max-w-md">
-              {article.title}
-            </span>
-          </div>
 
-          <div className="flex items-center gap-2 sm:gap-4">
-            <div className="hidden sm:block">
-              <CoverageBadge percentage={article.coveragePercentage} size="sm" />
+            {/* Reader Controls Dock */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div
+                className="flex items-center rounded-full border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated p-0.5 shadow-brutal-xs text-xs font-mono"
+                role="group"
+                aria-label="Font size"
+              >
+                {(['sm', 'base', 'lg', 'xl'] as const).map((sz) => {
+                  const labelMap = { sm: 'S', base: 'M', lg: 'L', xl: 'XL' };
+                  return (
+                    <button
+                      key={sz}
+                      type="button"
+                      onClick={() => setFontSize(sz)}
+                      aria-pressed={fontSize === sz}
+                      className={`px-2 py-1 rounded-full font-bold transition-colors ${
+                        fontSize === sz
+                          ? 'bg-violet-brand text-white'
+                          : 'text-[#141413] dark:text-ink-ivory hover:bg-violet-tint'
+                      }`}
+                    >
+                      {labelMap[sz]}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div
+                className="flex items-center rounded-full border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated p-0.5 shadow-brutal-xs text-xs"
+                role="group"
+                aria-label="Reading theme"
+              >
+                {(['light', 'sepia', 'dark'] as const).map((theme) => {
+                  const labelMap = { light: 'Paper', sepia: 'Sepia', dark: 'Dark' };
+                  return (
+                    <button
+                      key={theme}
+                      type="button"
+                      onClick={() => setReadingTheme(theme)}
+                      aria-pressed={readingTheme === theme}
+                      className={`px-2.5 py-1 rounded-full font-bold transition-colors ${
+                        readingTheme === theme
+                          ? 'bg-[#141413] dark:bg-violet-brand text-white'
+                          : 'text-[#141413] dark:text-ink-ivory hover:bg-violet-tint'
+                      }`}
+                    >
+                      {labelMap[theme]}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsLedgerOpen((prev) => !prev)}
+                aria-label="Toggle Vault Ledger"
+                aria-expanded={isLedgerOpen}
+                className={`brutal-pill-btn px-3.5 py-1.5 text-xs font-extrabold inline-flex items-center gap-1.5 ${
+                  isLedgerOpen
+                    ? 'bg-violet-brand text-white'
+                    : 'bg-white dark:bg-ink-elevated text-[#141413] dark:text-ink-ivory hover:bg-violet-tint'
+                }`}
+              >
+                <BookMarked className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Vault ({uniqueHighlights.length})</span>
+              </button>
             </div>
-
-            <div className="flex items-center border border-[#E7E2D8] dark:border-[#262930] rounded p-0.5 bg-paper-cream/60 dark:bg-ink-elevated/60 text-xs font-mono">
-              <button
-                type="button"
-                onClick={() => setFontSize('sm')}
-                className={`px-1.5 py-0.5 rounded ${fontSize === 'sm' ? 'bg-editorial-rust text-white font-bold' : 'hover:bg-paper-cream'}`}
-              >
-                S
-              </button>
-              <button
-                type="button"
-                onClick={() => setFontSize('base')}
-                className={`px-1.5 py-0.5 rounded ${fontSize === 'base' ? 'bg-editorial-rust text-white font-bold' : 'hover:bg-paper-cream'}`}
-              >
-                M
-              </button>
-              <button
-                type="button"
-                onClick={() => setFontSize('lg')}
-                className={`px-1.5 py-0.5 rounded ${fontSize === 'lg' ? 'bg-editorial-rust text-white font-bold' : 'hover:bg-paper-cream'}`}
-              >
-                L
-              </button>
-              <button
-                type="button"
-                onClick={() => setFontSize('xl')}
-                className={`px-1.5 py-0.5 rounded ${fontSize === 'xl' ? 'bg-editorial-rust text-white font-bold' : 'hover:bg-paper-cream'}`}
-              >
-                XL
-              </button>
-            </div>
-
-            <div className="flex items-center border border-[#E7E2D8] dark:border-[#262930] rounded p-0.5 bg-paper-cream/60 dark:bg-ink-elevated/60 text-xs">
-              <button
-                type="button"
-                onClick={() => setReadingTheme('light')}
-                className={`px-2 py-0.5 rounded ${readingTheme === 'light' ? 'bg-white text-ink-charcoal font-semibold shadow-xs' : 'text-ink-graphite'}`}
-              >
-                Paper
-              </button>
-              <button
-                type="button"
-                onClick={() => setReadingTheme('sepia')}
-                className={`px-2 py-0.5 rounded ${readingTheme === 'sepia' ? 'bg-[#EBDDC0] text-[#1C1917] font-semibold shadow-xs' : 'text-ink-graphite'}`}
-              >
-                Sepia
-              </button>
-              <button
-                type="button"
-                onClick={() => setReadingTheme('dark')}
-                className={`px-2 py-0.5 rounded ${readingTheme === 'dark' ? 'bg-ink-dark text-white font-semibold shadow-xs' : 'text-ink-graphite'}`}
-              >
-                Dark
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsLedgerOpen((prev) => !prev)}
-              aria-label="Toggle Vault Ledger"
-              className="p-1.5 rounded border border-[#E7E2D8] dark:border-[#262930] hover:bg-paper-cream dark:hover:bg-ink-elevated text-editorial-rust dark:text-editorial-orange"
-            >
-              <BookMarked className="w-4 h-4" />
-            </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative flex gap-8">
-        <article className="flex-1 max-w-reader mx-auto">
-          <header className="mb-10 pb-6 border-b border-[#E7E2D8] dark:border-[#262930]">
-            <div className="flex flex-wrap items-center gap-2 mb-3">
-              <span className="px-2 py-0.5 text-xs font-mono uppercase tracking-wider rounded bg-paper-cream dark:bg-ink-elevated border border-[#E7E2D8] dark:border-[#262930] text-ink-graphite dark:text-ink-pewter">
-                {article.sourceType}
+      {/* OVERLAPPING EDITORIAL SHEET & MARGIN SYLLABUS */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-10 flex flex-col lg:flex-row gap-8 items-start">
+        <article
+          className={`flex-1 w-full rounded-3xl border-2 border-[#141413] dark:border-[#3A3E4C] shadow-brutal-lg dark:shadow-brutal-dark p-6 sm:p-10 transition-colors duration-200 ${getSheetThemeClass()}`}
+        >
+          {/* Sheet Header matching Screen 3 Overlapping Card */}
+          <header className="mb-8 pb-6 border-b-2 border-[#141413]/15 dark:border-[#3A3E4C]">
+            <div className="flex flex-wrap items-center gap-3 mb-3">
+              <span className="px-3 py-0.5 rounded-full bg-violet-soft dark:bg-violet-darkSoft text-violet-brand dark:text-violet-bright text-[11px] font-extrabold uppercase tracking-wider">
+                {coverageTierLabel}
               </span>
-              <span className="text-xs font-mono text-ink-graphite dark:text-ink-pewter">
-                {article.totalWordCount} Words • {article.uniqueLemmaCount} Unique Lemmas
+              <span className="inline-flex items-center gap-1 text-xs font-extrabold font-mono">
+                <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" aria-hidden="true" />
+                <span>{article.coveragePercentage.toFixed(1)}%</span>
+                <span className="opacity-70 font-medium">({article.uniqueLemmaCount} unique lemmas)</span>
               </span>
-              {article.sourceUrl && (
-                <a
-                  href={article.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-editorial-rust dark:text-editorial-orange hover:underline ml-auto"
-                >
-                  Source Link <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
             </div>
 
-            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-ink-charcoal dark:text-ink-ivory leading-tight">
+            <h1 className="font-sans text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight mb-5">
               {article.title}
             </h1>
 
-            <div className="mt-4 p-3 rounded-lg bg-paper-cream/60 dark:bg-ink-elevated/60 border border-[#E7E2D8] dark:border-[#262930] flex flex-wrap items-center justify-between text-xs font-mono">
-              <span>Text Coverage: <strong>{article.coveragePercentage}%</strong></span>
+            {/* Instructor / Source Metadata Row */}
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1 text-amber-800 dark:text-amber-300">
-                  <span className="w-2.5 h-2.5 bg-amber-400 rounded-sm inline-block" />
-                  Kuning: Learning ({allHighlights.filter((h) => h.highlightColor === 'YELLOW').length})
+                <div className="w-10 h-10 rounded-full border-2 border-[#141413] dark:border-[#3A3E4C] bg-violet-soft dark:bg-violet-darkSoft text-violet-brand dark:text-violet-bright font-extrabold text-sm flex items-center justify-center shrink-0">
+                  {article.sourceType.slice(0, 2)}
+                </div>
+                <div>
+                  <span className="block text-[10px] font-extrabold uppercase tracking-widest opacity-60">
+                    SOURCE MATERIAL
+                  </span>
+                  <div className="text-xs sm:text-sm font-bold flex flex-wrap items-center gap-2">
+                    <span>{sourceDomain}</span>
+                    <span className="opacity-40">•</span>
+                    <span className="font-mono text-xs opacity-75">{article.totalWordCount} words</span>
+                    {article.sourceUrl && (
+                      <a
+                        href={article.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-violet-brand dark:text-violet-bright hover:underline"
+                      >
+                        Open Link <ExternalLink className="w-3 h-3" aria-hidden="true" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs font-mono font-bold">
+                <span className="px-2.5 py-1 rounded-full bg-marker-learning text-[#141413] border border-marker-learningBorder">
+                  Learning ({allHighlights.filter((h) => h.highlightColor === 'YELLOW').length})
                 </span>
-                <span className="flex items-center gap-1 text-rose-800 dark:text-rose-300">
-                  <span className="w-2.5 h-2.5 bg-rose-400 rounded-sm inline-block" />
-                  Merah Muda: Leech ({allHighlights.filter((h) => h.highlightColor === 'PINK').length})
+                <span className="px-2.5 py-1 rounded-full bg-marker-leech text-[#4C0519] border border-marker-leechBorder">
+                  Leech ({allHighlights.filter((h) => h.highlightColor === 'PINK').length})
                 </span>
               </div>
             </div>
           </header>
 
+          {/* Distraction-Free Reading Paragraphs */}
           <div
             ref={readerContentRef}
-            className={`font-serif ${getFontSizeClass()} text-ink-charcoal dark:text-ink-ivory space-y-6 select-text`}
+            className={`max-w-reader mx-auto font-serif ${getFontSizeClass()} space-y-6 select-text`}
           >
             {paragraphs.map((para) => (
               <p key={para.paragraphIndex} className="leading-relaxed">
@@ -235,103 +284,140 @@ export const WebReader: React.FC<WebReaderProps> = ({
             />
           )}
 
-          <footer className="mt-16 pt-8 border-t border-[#E7E2D8] dark:border-[#262930] text-center text-xs text-ink-graphite dark:text-ink-pewter font-mono">
-            Sentence Mining: Select any word or phrase with your cursor to save it to your Vault.
+          <footer className="max-w-reader mx-auto mt-14 pt-6 border-t-2 border-[#141413]/15 dark:border-[#3A3E4C] text-center text-xs font-mono font-semibold opacity-70">
+            One-Click Sentence Mining: Highlight any word or phrase with your cursor to save it to your Vault.
           </footer>
         </article>
 
+        {/* NUMBERED VAULT LEDGER SIDEBAR (Screen 3 Syllabus Motif: 01, 02, 03) */}
         {isLedgerOpen && (
-          <aside className="hidden lg:block w-72 shrink-0 border-l border-[#E7E2D8] dark:border-[#262930] pl-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-serif font-bold text-base">Margin Vault Ledger</h3>
+          <aside className="w-full lg:w-80 shrink-0 space-y-3" aria-label="Article vocabulary ledger">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-xs font-extrabold uppercase tracking-widest text-ink-muted dark:text-ink-pewter">
+                VAULT SYLLABUS ({uniqueHighlights.length})
+              </h2>
               <button
                 type="button"
                 onClick={() => setIsLedgerOpen(false)}
-                className="p-1 rounded text-ink-graphite hover:text-ink-charcoal"
+                aria-label="Close Vault Ledger"
+                className="p-1 rounded-full text-ink-muted hover:text-[#141413] dark:hover:text-ink-ivory"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
-            <p className="text-xs text-ink-graphite dark:text-ink-pewter">
-              {uniqueHighlights.length} target items detected in this text.
-            </p>
 
-            <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
-              {uniqueHighlights.map((hl) => (
-                <div
-                  key={hl.vocabItemId}
-                  onClick={() => setInspectedWord(hl)}
-                  className={`p-2.5 rounded border text-xs cursor-pointer transition-colors ${
-                    hl.highlightColor === 'PINK'
-                      ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900 text-rose-950 dark:text-rose-200 hover:bg-rose-100'
-                      : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900 text-amber-950 dark:text-amber-200 hover:bg-amber-100'
-                  }`}
-                >
-                  <div className="font-bold flex items-center justify-between">
-                    <span>{hl.lemma}</span>
-                    <span className="text-[10px] uppercase font-mono px-1 rounded bg-white/60 dark:bg-black/30">
-                      {hl.highlightColor === 'PINK' ? 'Leech' : 'Learning'}
-                    </span>
-                  </div>
-                  {hl.definition && (
-                    <p className="text-[11px] text-ink-graphite dark:text-ink-pewter mt-1 line-clamp-2">
-                      {hl.definition}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
+            {uniqueHighlights.length === 0 ? (
+              <div className="brutal-card-sm p-5 text-xs text-ink-muted dark:text-ink-pewter font-medium">
+                No tracked Vault words detected in this article yet. Select any word in the text to mine it!
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[72vh] overflow-y-auto pr-1">
+                {uniqueHighlights.map((hl, idx) => {
+                  const indexStr = String(idx + 1).padStart(2, '0');
+                  const isActive = inspectedWord?.vocabItemId === hl.vocabItemId;
+                  const isLeech = hl.highlightColor === 'PINK';
+
+                  return (
+                    <button
+                      key={hl.vocabItemId}
+                      type="button"
+                      onClick={() => setInspectedWord(hl)}
+                      className={`w-full text-left brutal-card-sm p-4 flex items-center justify-between gap-3 transition-transform hover:-translate-y-0.5 ${
+                        isActive ? 'border-t-4 border-t-violet-brand' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <span
+                          className={`font-mono text-base font-extrabold shrink-0 ${
+                            isActive ? 'text-violet-brand' : 'text-ink-muted/60 dark:text-ink-pewter/60'
+                          }`}
+                        >
+                          {indexStr}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="text-sm font-extrabold text-[#141413] dark:text-ink-ivory truncate">
+                            {hl.lemma}
+                          </div>
+                          <div className="text-xs text-ink-muted dark:text-ink-pewter truncate">
+                            {hl.definition || `Found as "${hl.surfaceForm}"`}
+                          </div>
+                        </div>
+                      </div>
+
+                      {isLeech ? (
+                        <span className="w-7 h-7 rounded-full bg-marker-leech border border-marker-leechBorder text-[#4C0519] flex items-center justify-center shrink-0" title="Leech Word">
+                          <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
+                        </span>
+                      ) : (
+                        <span className="w-7 h-7 rounded-full bg-violet-brand text-white flex items-center justify-center shrink-0" title="Learning in Vault">
+                          <Check className="w-3.5 h-3.5 stroke-[3]" aria-hidden="true" />
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </aside>
         )}
       </div>
 
+      {/* WORD INSPECTION MODAL */}
       {inspectedWord && (
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+          aria-labelledby="inspected-word-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#141413]/50 backdrop-blur-xs"
           onClick={() => setInspectedWord(null)}
         >
           <div
-            className="w-full max-w-md bg-paper-light dark:bg-ink-dark rounded-lg border border-[#E7E2D8] dark:border-[#262930] p-6 shadow-2xl"
+            className="w-full max-w-md rounded-3xl border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated p-6 shadow-brutal-lg dark:shadow-brutal-dark"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-3">
-              <span className={`px-2 py-0.5 text-xs font-mono uppercase rounded ${
-                inspectedWord.highlightColor === 'PINK'
-                  ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
-                  : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-              }`}>
+              <span
+                className={`px-3 py-0.5 text-[11px] font-extrabold uppercase tracking-wider rounded-full border ${
+                  inspectedWord.highlightColor === 'PINK'
+                    ? 'bg-marker-leech text-[#4C0519] border-marker-leechBorder'
+                    : 'bg-violet-soft text-violet-brand border-violet-brand/20'
+                }`}
+              >
                 {inspectedWord.highlightColor === 'PINK' ? 'Leech Word' : 'Learning Stage'}
               </span>
               <button
                 type="button"
                 onClick={() => setInspectedWord(null)}
-                className="text-ink-graphite hover:text-ink-charcoal dark:text-ink-pewter dark:hover:text-ink-ivory"
+                aria-label="Close inspection dialog"
+                className="brutal-pill-btn p-1.5 bg-white dark:bg-ink-surface text-[#141413] dark:text-ink-ivory"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
 
-            <h3 className="font-serif text-2xl font-bold mb-1">{inspectedWord.lemma}</h3>
-            <p className="text-xs text-ink-graphite dark:text-ink-pewter font-mono mb-4">
-              Found as: "{inspectedWord.surfaceForm}"
+            <h3 id="inspected-word-title" className="font-sans text-2xl font-extrabold text-[#141413] dark:text-ink-ivory mb-1">
+              {inspectedWord.lemma}
+            </h3>
+            <p className="text-xs text-ink-muted dark:text-ink-pewter font-mono mb-4">
+              Surface form: "{inspectedWord.surfaceForm}"
             </p>
 
-            <div className="p-3 rounded bg-paper-cream/60 dark:bg-ink-elevated/60 border border-[#E7E2D8] dark:border-[#262930] text-sm mb-4">
-              <span className="font-mono text-xs uppercase tracking-wider text-editorial-rust dark:text-editorial-orange font-semibold block mb-1">
+            <div className="p-4 rounded-2xl bg-violet-tint dark:bg-ink-surface border-2 border-[#141413] dark:border-[#3A3E4C] text-sm mb-5">
+              <span className="font-mono text-[11px] uppercase tracking-wider text-violet-brand dark:text-violet-bright font-extrabold block mb-1">
                 Definition
               </span>
-              {inspectedWord.definition || 'No definition recorded yet.'}
+              <p className="text-[#141413] dark:text-ink-ivory font-medium leading-relaxed">
+                {inspectedWord.definition || 'No definition recorded yet.'}
+              </p>
             </div>
 
             <div className="flex justify-end">
               <button
                 type="button"
                 onClick={() => setInspectedWord(null)}
-                className="px-4 py-2 text-sm font-semibold rounded bg-editorial-rust text-white"
+                className="brutal-pill-btn px-5 py-2 text-xs font-extrabold bg-violet-brand hover:bg-violet-hover text-white"
               >
-                Close
+                Done
               </button>
             </div>
           </div>
