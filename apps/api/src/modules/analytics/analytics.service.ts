@@ -1,6 +1,23 @@
 import { prisma, isDatabaseConnected } from '../../config/db';
 import { memoryStore } from '../../config/store';
 
+function calculateDayXp(act: {
+  articlesReadCount?: number;
+  reviewsCompletedCount?: number;
+  wordsMinedCount?: number;
+}): number {
+  const articlesRead = act.articlesReadCount || 0;
+  const reviewsCompleted = act.reviewsCompletedCount || 0;
+  const wordsMined = act.wordsMinedCount || 0;
+
+  const goal1Bonus = articlesRead > 0 ? 50 : 0;
+  const goal2Bonus = reviewsCompleted > 0 ? 20 : 0;
+  const goal3Bonus = wordsMined >= 3 ? 100 : 0;
+  const effortXp = reviewsCompleted * 5 + wordsMined * 10;
+
+  return goal1Bonus + goal2Bonus + goal3Bonus + effortXp;
+}
+
 export async function getDashboardAnalytics(userId: string) {
   const dbConnected = await isDatabaseConnected();
   const effectiveUserId = userId || '00000000-0000-0000-0000-000000000001';
@@ -39,13 +56,22 @@ export async function getDashboardAnalytics(userId: string) {
     return dateStr === todayStr;
   });
 
+  const todayArticlesRead = todayAct?.articlesReadCount || 0;
   const streak = {
     currentStreak: user?.currentStreak ?? 0,
     longestStreak: user?.longestStreak ?? 0,
     todayCompletedReviews: todayAct?.reviewsCompletedCount || 0,
     todayWordsMined: todayAct?.wordsMinedCount || 0,
+    todayArticlesRead,
     dailyGoal: user?.dailyReviewGoal ?? 20,
   };
+
+  const todayXp = todayAct ? calculateDayXp(todayAct) : 0;
+  const totalXp = activities.reduce((sum, act) => sum + calculateDayXp(act), 0);
+  const xpPerLevel = 250;
+  const level = Math.floor(totalXp / xpPerLevel) + 1;
+  const levelProgressPct = Math.round(((totalXp % xpPerLevel) / xpPerLevel) * 100);
+  const xpToNextLevel = xpPerLevel - (totalXp % xpPerLevel);
 
   const totalVocab = Math.max(1, vocabItems.length);
   const stageCounts = {
@@ -189,6 +215,13 @@ export async function getDashboardAnalytics(userId: string) {
 
   return {
     streak,
+    xp: {
+      todayXp,
+      totalXp,
+      level,
+      levelProgressPct,
+      xpToNextLevel,
+    },
     retentionDistribution,
     contributionHeatmap,
     vocabularyGrowth,

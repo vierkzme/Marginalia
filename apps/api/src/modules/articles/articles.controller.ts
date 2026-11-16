@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { z } from 'zod';
 import { AuthenticatedRequest } from '../../middlewares/auth.middleware';
-import { importArticle, listArticles } from './importer.service';
+import { importArticle, listArticles, updateArticleReadingProgress } from './importer.service';
 import { getArticleReaderView } from './reader-view.service';
 
 const ImportBodySchema = z.object({
@@ -9,6 +9,11 @@ const ImportBodySchema = z.object({
   title: z.string().optional(),
   sourceUrl: z.string().url().optional(),
   rawContent: z.string().optional(),
+});
+
+const ProgressBodySchema = z.object({
+  progressPct: z.number().min(0).max(100).optional(),
+  isCompleted: z.boolean().optional(),
 });
 
 export async function handleImport(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -91,6 +96,35 @@ export async function handleGetReaderView(req: AuthenticatedRequest, res: Respon
     res.status(404).json({
       success: false,
       error: { code: 'NOT_FOUND', message },
+    });
+  }
+}
+
+export async function handleUpdateProgress(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const userId = req.user?.id || '00000000-0000-0000-0000-000000000001';
+  const articleId = req.params.articleId;
+
+  const parsed = ProgressBodySchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({
+      success: false,
+      error: { code: 'VALIDATION_ERROR', message: 'Invalid reading progress payload.' },
+    });
+    return;
+  }
+
+  try {
+    const updated = await updateArticleReadingProgress(userId, articleId, parsed.data);
+    res.json({
+      success: true,
+      data: updated,
+      meta: { timestamp: new Date().toISOString() },
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to update reading progress.';
+    res.status(404).json({
+      success: false,
+      error: { code: 'PROGRESS_UPDATE_ERROR', message },
     });
   }
 }

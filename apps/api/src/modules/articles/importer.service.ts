@@ -336,3 +336,154 @@ export async function listArticles(userId: string) {
       }));
   }
 }
+
+export async function updateArticleReadingProgress(
+  userId: string,
+  articleId: string,
+  input: { progressPct?: number; isCompleted?: boolean }
+) {
+  const dbConnected = await isDatabaseConnected();
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  const todayDate = new Date(`${todayStr}T00:00:00.000Z`);
+
+  if (dbConnected) {
+    const existing = await prisma.article.findFirst({
+      where: { id: articleId, userId },
+    });
+    if (!existing) {
+      throw new Error('Article not found.');
+    }
+
+    const nextCompleted = Boolean(input.isCompleted ?? existing.isCompleted);
+    const requestedPct =
+      typeof input.progressPct === 'number'
+        ? Math.min(100, Math.max(0, input.progressPct))
+        : existing.readingProgressPct;
+    const nextProgress = nextCompleted
+      ? 100
+      : Math.max(existing.readingProgressPct, requestedPct);
+
+    const shouldRecordRead =
+      (nextCompleted && !existing.isCompleted) ||
+      (nextProgress >= 50 && existing.readingProgressPct < 50);
+
+    const updated = await prisma.article.update({
+      where: { id: articleId },
+      data: {
+        readingProgressPct: nextProgress,
+        isCompleted: nextCompleted,
+      },
+    });
+
+    if (shouldRecordRead) {
+      await prisma.dailyActivity.upsert({
+        where: {
+          userId_activityDate: {
+            userId,
+            activityDate: todayDate,
+          },
+        },
+        create: {
+          userId,
+          activityDate: todayDate,
+          articlesReadCount: 1,
+          totalActivityScore: 1,
+        },
+        update: {
+          articlesReadCount: { increment: 1 },
+          totalActivityScore: { increment: 1 },
+        },
+      });
+
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (user) {
+        const lastStr = user.lastActiveDate
+          ? user.lastActiveDate.toISOString().slice(0, 10)
+          : null;
+        if (lastStr !== todayStr) {
+          const yesterdayStr = new Date(now.getTime() - 86400000).toISOString().slice(0, 10);
+          const nextStreak = lastStr === yesterdayStr ? user.currentStreak + 1 : 1;
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              currentStreak: nextStreak,
+              longestStreak: Math.max(user.longestStreak, nextStreak),
+              lastActiveDate: todayDate,
+            },
+          });
+        }
+      }
+    }
+
+    return {
+      articleId: updated.id,
+      readingProgressPct: updated.readingProgressPct,
+      isCompleted: updated.isCompleted,
+      recordedDailyRead: shouldRecordRead,
+    };
+  } else {
+    const store = memoryStore.getData();
+    const article = store.articles.find(
+      (a) => a.id === articleId && a.userId === userId
+    );
+    if (!article) {
+      throw new Error('Article not found.');
+    }
+
+    const prevCompleted = article.isCompleted;
+    const prevPct = article.readingProgressPct;
+    const nextCompleted = Boolean(input.isCompleted ?? prevCompleted);
+    const requestedPct =
+      typeof input.progressPct === 'number'
+        ? Math.min(100, Math.max(0, input.progressPct))
+        : prevPct;
+    const nextProgress = nextCompleted ? 100 : Math.max(prevPct, requestedPct);
+
+    const shouldRecordRead =
+      (nextCompleted && !prevCompleted) ||
+      (nextProgress >= 50 && prevPct < 50);
+
+    article.readingProgressPct = nextProgress;
+    article.isCompleted = nextCompleted;
+
+    if (shouldRecordRead) {
+      let dailyAct = store.dailyActivities.find(
+        (d) => d.userId === userId && d.activityDate === todayStr
+      );
+      if (!dailyAct) {
+        dailyAct = {
+          id: `act-${userId}-${todayStr}`,
+          userId,
+          activityDate: todayStr,
+          wordsMinedCount: 0,
+          reviewsCompletedCount: 0,
+          articlesReadCount: 1,
+          totalActivityScore: 1,
+        };
+        store.dailyActivities.push(dailyAct);
+      } else {
+        dailyAct.articlesReadCount += 1;
+        dailyAct.totalActivityScore += 1;
+      }
+
+      const user = store.users.find((u) => u.id === userId);
+      if (user && user.lastActiveDate !== todayStr) {
+        const yesterdayStr = new Date(now.getTime() - 86400000).toISOString().slice(0, 10);
+        const nextStreak = user.lastActiveDate === yesterdayStr ? user.currentStreak + 1 : 1;
+        user.currentStreak = nextStreak;
+        user.longestStreak = Math.max(user.longestStreak, nextStreak);
+        user.lastActiveDate = todayStr;
+      }
+    }
+
+    memoryStore.save();
+
+    return {
+      articleId: article.id,
+      readingProgressPct: article.readingProgressPct,
+      isCompleted: article.isCompleted,
+      recordedDailyRead: shouldRecordRead,
+    };
+  }
+}

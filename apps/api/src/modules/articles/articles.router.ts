@@ -1,6 +1,11 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { handleImport, handleGetArticles, handleGetReaderView } from './articles.controller';
+import {
+  handleImport,
+  handleGetArticles,
+  handleGetReaderView,
+  handleUpdateProgress,
+} from './articles.controller';
 import { requireAuth } from '../../middlewares/auth.middleware';
 
 const upload = multer({
@@ -13,5 +18,6 @@ router.use(requireAuth);
 router.post('/import', upload.single('file'), handleImport);
 router.get('/', handleGetArticles);
 router.get('/:articleId/reader-view', handleGetReaderView);
+router.patch('/:articleId/progress', handleUpdateProgress);
 
 export default router;
