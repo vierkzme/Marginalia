@@ -30,11 +30,12 @@ export const ReviewPage: React.FC = () => {
     setIsFlipped(false);
     setSessionFinished(false);
 
-    api.reviews.getDue()
+    api.reviews
+      .getDue()
       .then((res: any) => {
-        const cards = res?.data?.cards || res?.cards || (Array.isArray(res?.data) ? res.data : []);
-        if (Array.isArray(cards)) {
-          setCards(cards);
+        const dueCards = res?.data?.cards || res?.cards || (Array.isArray(res?.data) ? res.data : []);
+        if (Array.isArray(dueCards)) {
+          setCards(dueCards);
           cardStartTimeRef.current = Date.now();
         } else {
           setError(res?.error || 'Failed to fetch due review cards.');
@@ -91,9 +92,9 @@ export const ReviewPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-6 bg-paper-light dark:bg-ink-dark">
-        <Loader2 className="w-8 h-8 animate-spin text-editorial-rust mb-3" />
-        <p className="font-serif text-sm text-ink-graphite dark:text-ink-pewter">
+      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-6 bg-canvas-cream dark:bg-ink-dark">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-brand mb-3" />
+        <p className="font-mono font-semibold text-sm text-ink-muted dark:text-ink-pewter">
           Loading your spaced repetition due deck...
         </p>
       </div>
@@ -102,70 +103,70 @@ export const ReviewPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-6 bg-paper-light dark:bg-ink-dark text-center">
-        <h2 className="font-serif text-2xl font-bold mb-2">Review Deck Error</h2>
-        <p className="text-sm text-ink-graphite dark:text-ink-pewter mb-6 max-w-md">
-          {error}
-        </p>
-        <button
-          type="button"
-          onClick={fetchDueReviews}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded font-semibold text-sm bg-editorial-rust text-white"
-        >
-          <RefreshCw className="w-4 h-4" /> Try Again
-        </button>
+      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-6 bg-canvas-cream dark:bg-ink-dark text-center">
+        <div className="brutal-card p-8 max-w-md space-y-4">
+          <h1 className="font-sans text-2xl font-extrabold">Review Deck Error</h1>
+          <p className="text-sm text-ink-muted dark:text-ink-pewter">{error}</p>
+          <button
+            type="button"
+            onClick={fetchDueReviews}
+            className="brutal-pill-btn inline-flex items-center gap-2 px-5 py-2 text-sm font-extrabold bg-violet-brand text-white"
+          >
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
+            <span>Try Again</span>
+          </button>
+        </div>
       </div>
     );
   }
 
-  // Session Completed State
   if (sessionFinished) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-6 bg-paper-light dark:bg-ink-dark">
-        <div className="w-full max-w-md bg-paper-cream/60 dark:bg-ink-elevated/60 border border-[#D9D3C7] dark:border-[#2E323B] rounded-2xl p-8 text-center shadow-xl space-y-6">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center">
-            <Trophy className="w-8 h-8" />
+      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-6 bg-canvas-cream dark:bg-ink-dark">
+        <div className="w-full max-w-md brutal-card rounded-3xl p-8 text-center space-y-6">
+          <div className="w-16 h-16 rounded-full border-2 border-[#141413] bg-violet-soft text-violet-brand mx-auto flex items-center justify-center shadow-brutal-xs">
+            <Trophy className="w-8 h-8" aria-hidden="true" />
           </div>
 
           <div>
-            <h2 className="font-serif text-3xl font-bold">Session Complete!</h2>
-            <p className="text-sm text-ink-graphite dark:text-ink-pewter font-mono mt-1">
+            <h1 className="font-sans text-3xl font-extrabold tracking-tight">Session Complete!</h1>
+            <p className="text-sm text-ink-muted dark:text-ink-pewter font-mono mt-1">
               You reviewed {reviewedStats.total} cards with SuperMemo-2 scheduling.
             </p>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 text-center font-mono py-2 border-y border-[#E7E2D8] dark:border-[#262930]">
+          <div className="grid grid-cols-4 gap-2 text-center font-mono py-3 border-y-2 border-[#141413]/15 dark:border-[#3A3E4C]">
             <div>
-              <div className="text-lg font-bold text-rose-700">{reviewedStats.again}</div>
-              <div className="text-[10px] uppercase text-ink-graphite">Again</div>
+              <div className="text-lg font-extrabold text-rose-700 dark:text-rose-400">{reviewedStats.again}</div>
+              <div className="text-[10px] uppercase font-bold text-ink-muted">Again</div>
             </div>
             <div>
-              <div className="text-lg font-bold text-amber-700">{reviewedStats.hard}</div>
-              <div className="text-[10px] uppercase text-ink-graphite">Hard</div>
+              <div className="text-lg font-extrabold text-amber-700 dark:text-amber-400">{reviewedStats.hard}</div>
+              <div className="text-[10px] uppercase font-bold text-ink-muted">Hard</div>
             </div>
             <div>
-              <div className="text-lg font-bold text-sky-700">{reviewedStats.good}</div>
-              <div className="text-[10px] uppercase text-ink-graphite">Good</div>
+              <div className="text-lg font-extrabold text-violet-brand dark:text-violet-bright">{reviewedStats.good}</div>
+              <div className="text-[10px] uppercase font-bold text-ink-muted">Good</div>
             </div>
             <div>
-              <div className="text-lg font-bold text-emerald-700">{reviewedStats.easy}</div>
-              <div className="text-[10px] uppercase text-ink-graphite">Easy</div>
+              <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400">{reviewedStats.easy}</div>
+              <div className="text-[10px] uppercase font-bold text-ink-muted">Easy</div>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-1">
             <Link
               to="/"
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-serif font-bold text-sm bg-editorial-rust text-white shadow-xs"
+              className="brutal-pill-btn inline-flex items-center justify-center gap-2 px-5 py-2.5 font-extrabold text-sm bg-violet-brand hover:bg-violet-hover text-white"
             >
               <span>Back to Library</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </Link>
             <Link
               to="/vault"
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-serif text-sm bg-paper-cream dark:bg-ink-elevated border border-[#D9D3C7] dark:border-[#2E323B] text-ink-charcoal dark:text-ink-ivory"
+              className="brutal-pill-btn inline-flex items-center justify-center gap-2 px-5 py-2.5 font-extrabold text-sm bg-white dark:bg-ink-surface text-[#141413] dark:text-ink-ivory"
             >
-              <BookMarked className="w-4 h-4 text-editorial-rust" />
+              <BookMarked className="w-4 h-4 text-violet-brand" aria-hidden="true" />
               <span>Inspect Vault</span>
             </Link>
           </div>
@@ -174,24 +175,25 @@ export const ReviewPage: React.FC = () => {
     );
   }
 
-  // Zero Cards Due Initially
   if (cards.length === 0) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-6 bg-paper-light dark:bg-ink-dark text-center">
-        <div className="w-16 h-16 rounded-full bg-paper-cream dark:bg-ink-elevated border border-[#D9D3C7] dark:border-[#2E323B] flex items-center justify-center text-editorial-rust dark:text-editorial-orange mb-4 shadow-sm">
-          <CheckCircle2 className="w-8 h-8" />
+      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-6 bg-canvas-cream dark:bg-ink-dark text-center">
+        <div className="brutal-card rounded-3xl p-8 max-w-md space-y-4">
+          <div className="w-16 h-16 rounded-full border-2 border-[#141413] bg-violet-soft text-violet-brand flex items-center justify-center mx-auto shadow-brutal-xs">
+            <CheckCircle2 className="w-8 h-8" aria-hidden="true" />
+          </div>
+          <h1 className="font-sans text-3xl font-extrabold tracking-tight">Zero Cards Due Today</h1>
+          <p className="text-sm text-ink-muted dark:text-ink-pewter leading-relaxed">
+            Your memory retention is fully scheduled. Read a new article to mine idioms and vocabulary into your vault!
+          </p>
+          <Link
+            to="/"
+            className="brutal-pill-btn inline-flex items-center gap-2 px-5 py-2.5 font-extrabold text-sm bg-violet-brand hover:bg-violet-hover text-white"
+          >
+            <span>Explore Reading Library</span>
+            <ArrowRight className="w-4 h-4" aria-hidden="true" />
+          </Link>
         </div>
-        <h2 className="font-serif text-3xl font-bold mb-2">Zero Cards Due Today</h2>
-        <p className="text-sm text-ink-graphite dark:text-ink-pewter mb-8 max-w-md leading-relaxed">
-          Your memory retention is fully scheduled. Read a new article to mine idioms and vocabulary into your vault!
-        </p>
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-serif font-bold text-sm bg-editorial-rust text-white shadow-xs"
-        >
-          <span>Explore Reading Library</span>
-          <ArrowRight className="w-4 h-4" />
-        </Link>
       </div>
     );
   }
@@ -200,17 +202,19 @@ export const ReviewPage: React.FC = () => {
   const progressPercent = Math.round(((currentIndex + 1) / cards.length) * 100);
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-paper-light dark:bg-ink-dark py-8 px-4 sm:px-6">
+    <div className="min-h-[calc(100vh-4rem)] bg-canvas-cream dark:bg-ink-dark py-8 px-4 sm:px-6">
       <div className="max-w-2xl mx-auto mb-6">
-        <div className="flex items-center justify-between text-xs font-mono text-ink-graphite dark:text-ink-pewter mb-2">
-          <span>
-            Card <strong>{currentIndex + 1}</strong> of <strong>{cards.length}</strong>
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="font-sans text-2xl font-extrabold tracking-tight text-[#141413] dark:text-ink-ivory">
+            Daily Cloze Review
+          </h1>
+          <span className="px-3 py-1 rounded-full border-2 border-[#141413] dark:border-[#3A3E4C] bg-white dark:bg-ink-elevated text-xs font-mono font-extrabold shadow-brutal-xs">
+            {currentIndex + 1} / {cards.length} • {progressPercent}%
           </span>
-          <span>{progressPercent}% Complete</span>
         </div>
-        <div className="w-full h-1.5 rounded-full bg-paper-cream dark:bg-ink-elevated overflow-hidden border border-[#E7E2D8] dark:border-[#262930]">
+        <div className="w-full h-3 rounded-full bg-white dark:bg-ink-elevated overflow-hidden border-2 border-[#141413] dark:border-[#3A3E4C]">
           <div
-            className="h-full bg-editorial-rust transition-all duration-300"
+            className="h-full bg-violet-brand dark:bg-violet-bright transition-all duration-300"
             style={{ width: `${progressPercent}%` }}
           />
         </div>

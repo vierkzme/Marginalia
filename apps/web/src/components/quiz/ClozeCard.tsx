@@ -57,7 +57,6 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
   const [typedAnswer, setTypedAnswer] = useState('');
   const [typeFeedback, setTypeFeedback] = useState<'correct' | 'incorrect' | null>(null);
 
-  // Reset local state when active card changes
   useEffect(() => {
     setContextIndex(0);
     setShowFirstLetter(false);
@@ -65,7 +64,6 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
     setTypeFeedback(null);
   }, [card.vocabItemId]);
 
-  // Shortcut: Space to show answer if not flipped
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -119,18 +117,17 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
     }
   };
 
-  // Helper to format cloze sentence with highlighted blank or term
   const renderSentenceContent = () => {
     if (isFlipped) {
-      // In flipped state, display full sentence with the target surface form highlighted
-      const parts = activeContext.fullSentence.split(new RegExp(`(${activeContext.surfaceForm})`, 'i'));
+      const escapedSurface = activeContext.surfaceForm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const parts = activeContext.fullSentence.split(new RegExp(`(${escapedSurface})`, 'i'));
       return (
         <span className="leading-relaxed">
           {parts.map((p, i) =>
             p.toLowerCase() === activeContext.surfaceForm.toLowerCase() ? (
               <strong
                 key={i}
-                className="bg-amber-200/80 dark:bg-amber-900/60 text-amber-950 dark:text-amber-100 px-1.5 py-0.5 rounded underline decoration-editorial-rust decoration-2"
+                className="bg-marker-learning text-[#141413] px-2 py-0.5 rounded border-b-2 border-marker-learningBorder"
               >
                 {p}
               </strong>
@@ -142,7 +139,6 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
       );
     }
 
-    // In cloze prompt state, replace [ ... ] with styled blank placeholder
     const parts = activeContext.clozeSentence.split(/(\[.*?\])/g);
     return (
       <span className="leading-relaxed">
@@ -151,7 +147,7 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
             return (
               <span
                 key={i}
-                className="inline-block px-3 py-0.5 mx-1 border-b-2 border-editorial-rust font-mono text-editorial-rust font-bold bg-paper-cream dark:bg-ink-elevated rounded-xs"
+                className="inline-block px-3.5 py-0.5 mx-1 border-2 border-[#141413] bg-violet-soft dark:bg-violet-darkSoft text-violet-brand dark:text-violet-bright font-mono font-extrabold rounded-xl shadow-brutal-xs"
               >
                 [ • • • • • • • ]
               </span>
@@ -164,31 +160,31 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto rounded-2xl border border-[#D9D3C7] dark:border-[#2E323B] bg-paper-light dark:bg-ink-dark shadow-xl overflow-hidden transition-all duration-200">
+    <div className="w-full max-w-2xl mx-auto brutal-card rounded-3xl border-t-4 border-t-violet-brand overflow-hidden">
       {/* CARD HEADER */}
-      <div className="px-6 py-4 border-b border-[#E7E2D8] dark:border-[#262930] flex flex-wrap items-center justify-between gap-3 bg-paper-cream/40 dark:bg-ink-elevated/40">
-        <div className="flex items-center gap-2">
-          <span className="px-2 py-0.5 rounded text-xs font-mono uppercase tracking-wider bg-paper-cream dark:bg-ink-elevated text-ink-graphite dark:text-ink-pewter border border-[#D9D3C7] dark:border-[#2E323B]">
+      <div className="px-6 py-4 border-b-2 border-[#141413] dark:border-[#3A3E4C] flex flex-wrap items-center justify-between gap-3 bg-canvas-cream dark:bg-ink-surface">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-violet-soft dark:bg-violet-darkSoft text-violet-brand dark:text-violet-bright">
             {card.partOfSpeech || 'term'}
           </span>
           {card.phonetic && (
-            <span className="font-mono text-xs text-ink-graphite dark:text-ink-pewter">
+            <span className="font-mono text-xs font-semibold text-ink-muted dark:text-ink-pewter">
               {card.phonetic}
             </span>
           )}
           {card.sm2State.isLeech && (
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono uppercase bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border border-rose-300 dark:border-rose-900 font-bold">
-              <AlertTriangle className="w-3.5 h-3.5" />
+            <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono uppercase bg-marker-leech text-[#4C0519] border border-marker-leechBorder font-extrabold">
+              <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Leech ({card.sm2State.lapseCount} Lapses)</span>
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {card.tags.map((tag) => (
             <span
               key={tag}
-              className="px-2 py-0.5 rounded text-[11px] font-mono bg-paper-cream dark:bg-ink-elevated text-ink-graphite dark:text-ink-pewter"
+              className="px-2.5 py-0.5 rounded-full border border-[#141413]/20 dark:border-[#3A3E4C] text-[11px] font-mono font-bold bg-white dark:bg-ink-elevated text-[#141413] dark:text-ink-ivory"
             >
               #{tag}
             </span>
@@ -197,13 +193,13 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
       </div>
 
       {/* CLOZE SENTENCE PROMPT */}
-      <div className="p-6 sm:p-8 space-y-6">
-        <div className="text-xs font-mono uppercase tracking-wider text-editorial-rust dark:text-editorial-orange font-semibold flex items-center gap-1.5">
-          <BookOpen className="w-4 h-4" />
+      <div className="p-6 sm:p-8 space-y-6 bg-white dark:bg-ink-elevated">
+        <div className="text-xs font-extrabold uppercase tracking-wider text-violet-brand dark:text-violet-bright flex items-center gap-1.5">
+          <BookOpen className="w-4 h-4" aria-hidden="true" />
           <span>Sentence Context • Cloze Prompt</span>
         </div>
 
-        <div className="font-serif text-xl sm:text-2xl text-ink-charcoal dark:text-ink-ivory leading-relaxed min-h-[90px] flex items-center">
+        <div className="font-serif text-xl sm:text-2xl text-[#141413] dark:text-ink-ivory leading-relaxed min-h-[90px] flex items-center">
           {renderSentenceContent()}
         </div>
 
@@ -220,18 +216,19 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
 
         {/* OPTIONAL TYPING RECALL INPUT */}
         {!isFlipped && (
-          <form onSubmit={handleCheckTypedAnswer} className="space-y-3 pt-2">
-            <div className="flex items-center gap-2">
+          <form onSubmit={handleCheckTypedAnswer} className="space-y-3 pt-1">
+            <div className="flex items-center gap-2.5">
               <input
                 type="text"
                 value={typedAnswer}
                 onChange={(e) => setTypedAnswer(e.target.value)}
                 placeholder="Type your answer to practice (optional)..."
-                className="flex-1 px-3.5 py-2 rounded-lg border border-[#D9D3C7] dark:border-[#2E323B] bg-white dark:bg-ink-surface text-ink-charcoal dark:text-ink-ivory placeholder:text-ink-graphite/60 dark:placeholder:text-ink-pewter/60 text-sm font-mono focus:outline-hidden focus:ring-2 focus:ring-editorial-rust"
+                aria-label="Type your answer"
+                className="brutal-input flex-1 px-4 py-2.5 rounded-full text-sm font-mono"
               />
               <button
                 type="submit"
-                className="px-4 py-2 rounded-lg text-xs font-semibold font-mono bg-paper-cream dark:bg-ink-elevated border border-[#D9D3C7] dark:border-[#2E323B] hover:border-editorial-rust"
+                className="brutal-pill-btn px-5 py-2.5 text-xs font-extrabold bg-white dark:bg-ink-surface text-[#141413] dark:text-ink-ivory hover:bg-violet-tint"
               >
                 Check
               </button>
@@ -241,19 +238,19 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
 
         {/* FLIPPED ANSWER SECTION */}
         {isFlipped ? (
-          <div className="space-y-5 pt-4 border-t border-[#E7E2D8] dark:border-[#262930] animate-in fade-in duration-200">
+          <div className="space-y-5 pt-4 border-t-2 border-[#141413]/15 dark:border-[#3A3E4C]">
             {typeFeedback && (
               <div
-                className={`p-2.5 rounded-lg text-xs font-mono flex items-center gap-2 ${
+                className={`p-3 rounded-2xl border-2 border-[#141413] text-xs font-mono font-bold flex items-center gap-2 ${
                   typeFeedback === 'correct'
-                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200'
-                    : 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200'
+                    ? 'bg-emerald-100 text-emerald-950'
+                    : 'bg-amber-100 text-amber-950'
                 }`}
               >
                 {typeFeedback === 'correct' ? (
-                  <CheckCircle className="w-4 h-4 text-emerald-600" />
+                  <CheckCircle className="w-4 h-4 text-emerald-700" aria-hidden="true" />
                 ) : (
-                  <HelpCircle className="w-4 h-4 text-amber-600" />
+                  <HelpCircle className="w-4 h-4 text-amber-700" aria-hidden="true" />
                 )}
                 <span>
                   {typeFeedback === 'correct'
@@ -263,22 +260,22 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
               </div>
             )}
 
-            <div className="p-4 rounded-xl bg-paper-cream/60 dark:bg-ink-elevated/60 border border-[#E7E2D8] dark:border-[#262930] space-y-2">
-              <div className="flex items-baseline justify-between gap-2">
-                <h3 className="font-serif text-3xl font-bold text-ink-charcoal dark:text-ink-ivory">
+            <div className="p-5 rounded-2xl bg-violet-tint dark:bg-ink-surface border-2 border-[#141413] dark:border-[#3A3E4C] shadow-brutal-xs space-y-2">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="font-sans text-2xl sm:text-3xl font-extrabold text-[#141413] dark:text-ink-ivory">
                   {card.displayTerm || card.lemma}
-                </h3>
-                <span className="text-xs font-mono text-ink-graphite dark:text-ink-pewter">
+                </h2>
+                <span className="text-xs font-mono font-bold text-violet-brand dark:text-violet-bright">
                   From: {activeContext.articleTitle}
                 </span>
               </div>
 
-              <p className="text-sm font-sans text-ink-charcoal dark:text-ink-ivory leading-relaxed pt-1">
+              <p className="text-sm font-sans font-medium text-[#141413] dark:text-ink-ivory leading-relaxed pt-1">
                 {card.definition}
               </p>
 
               {card.personalNote && (
-                <div className="pt-2 text-xs text-editorial-rust dark:text-editorial-orange font-mono flex items-start gap-1">
+                <div className="pt-2 text-xs text-violet-brand dark:text-violet-bright font-mono font-semibold flex items-start gap-1">
                   <span>Catatan:</span>
                   <span>{card.personalNote}</span>
                 </div>
@@ -292,14 +289,14 @@ export const ClozeCard: React.FC<ClozeCardProps> = ({
             />
           </div>
         ) : (
-          <div className="pt-4 flex flex-col items-center">
+          <div className="pt-2 flex flex-col items-center">
             <button
               type="button"
               onClick={onFlip}
-              className="w-full py-3.5 rounded-xl font-bold font-serif text-base bg-editorial-rust text-white hover:bg-editorial-rust/90 transition-all shadow-md flex items-center justify-center gap-2"
+              className="brutal-pill-btn w-full py-3.5 font-extrabold text-base bg-violet-brand hover:bg-violet-hover text-white flex items-center justify-center gap-2"
             >
               <span>Show Answer</span>
-              <kbd className="px-2 py-0.5 rounded bg-black/20 text-xs font-mono font-normal">
+              <kbd className="px-2 py-0.5 rounded-full bg-black/25 text-xs font-mono font-semibold">
                 Space
               </kbd>
             </button>

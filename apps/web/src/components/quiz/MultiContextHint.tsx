@@ -20,12 +20,10 @@ export const MultiContextHint: React.FC<MultiContextHintProps> = ({
   firstLetterHint,
   disabled = false,
 }) => {
-  // Shortcut: 'H' for next context, 'L' for first-letter hint
   useEffect(() => {
     if (disabled) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if user is typing into an input field
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
@@ -49,21 +47,21 @@ export const MultiContextHint: React.FC<MultiContextHintProps> = ({
   }, [contextsCount, onNextContext, onToggleFirstLetter, disabled]);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#E7E2D8] dark:border-[#262930] text-xs font-mono">
-      <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t-2 border-[#141413]/15 dark:border-[#3A3E4C] text-xs font-mono">
+      <div className="flex flex-wrap items-center gap-2.5">
         {contextsCount > 1 && (
           <button
             type="button"
             onClick={onNextContext}
             disabled={disabled}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-paper-cream dark:bg-ink-elevated border border-[#D9D3C7] dark:border-[#2E323B] text-ink-charcoal dark:text-ink-ivory hover:border-editorial-rust dark:hover:border-editorial-orange transition-colors"
+            className="brutal-pill-btn inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-ink-surface text-[#141413] dark:text-ink-ivory font-bold hover:bg-violet-tint"
             title="Press H to switch sentence context"
           >
-            <Layers className="w-3.5 h-3.5 text-editorial-rust dark:text-editorial-orange" />
+            <Layers className="w-3.5 h-3.5 text-violet-brand dark:text-violet-bright" aria-hidden="true" />
             <span>
               Lihat Kalimat Lain ({currentIndex + 1}/{contextsCount})
             </span>
-            <kbd className="ml-1 px-1 py-0.2 rounded bg-black/5 dark:bg-white/10 text-[10px]">
+            <kbd className="ml-1 px-1.5 py-0.5 rounded-full bg-canvas-cream dark:bg-ink-dark border border-[#141413]/20 text-[10px]">
               H
             </kbd>
           </button>
@@ -74,16 +72,17 @@ export const MultiContextHint: React.FC<MultiContextHintProps> = ({
             type="button"
             onClick={onToggleFirstLetter}
             disabled={disabled}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded border transition-colors ${
+            aria-pressed={showFirstLetter}
+            className={`brutal-pill-btn inline-flex items-center gap-1.5 px-3.5 py-1.5 font-bold ${
               showFirstLetter
-                ? 'bg-amber-100 dark:bg-amber-950/60 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200'
-                : 'bg-paper-cream dark:bg-ink-elevated border-[#D9D3C7] dark:border-[#2E323B] text-ink-graphite dark:text-ink-pewter hover:text-ink-charcoal'
+                ? 'bg-marker-learning text-[#141413]'
+                : 'bg-white dark:bg-ink-surface text-[#141413] dark:text-ink-ivory hover:bg-violet-tint'
             }`}
             title="Press L to reveal first-letter hint"
           >
-            <Lightbulb className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            <Lightbulb className="w-3.5 h-3.5 text-amber-600" aria-hidden="true" />
             <span>Hint Huruf Awal</span>
-            <kbd className="ml-1 px-1 py-0.2 rounded bg-black/5 dark:bg-white/10 text-[10px]">
+            <kbd className="ml-1 px-1.5 py-0.5 rounded-full bg-canvas-cream dark:bg-ink-dark border border-[#141413]/20 text-[10px]">
               L
             </kbd>
           </button>
@@ -91,7 +90,7 @@ export const MultiContextHint: React.FC<MultiContextHintProps> = ({
       </div>
 
       {showFirstLetter && firstLetterHint && (
-        <div className="px-3 py-1 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-200 font-mono tracking-widest text-sm animate-in fade-in">
+        <div className="px-3.5 py-1 rounded-full border-2 border-[#141413] bg-marker-learning text-[#141413] font-mono font-extrabold tracking-widest text-sm shadow-brutal-xs">
           {firstLetterHint}
         </div>
       )}
