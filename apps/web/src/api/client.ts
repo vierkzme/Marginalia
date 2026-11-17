@@ -1,6 +1,16 @@
 const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4000/api/v1';
 
 let authToken: string | null = localStorage.getItem('criv_auth_token');
+const GET_CACHE_TTL_MS = 15_000;
+const responseCache = new Map<string, { expiresAt: number; value: unknown }>();
+const inflightGets = new Map<string, Promise<unknown>>();
+let cacheEpoch = 0;
+
+export function clearApiCache(): void {
+  cacheEpoch += 1;
+  responseCache.clear();
+  inflightGets.clear();
+}
 
 export interface ReaderPreferences {
   fontSize: 'sm' | 'base' | 'lg' | 'xl';
@@ -30,6 +40,9 @@ export function setReaderPreferences(prefs: ReaderPreferences): void {
 }
 
 export function setAuthToken(token: string | null) {
+  if (authToken !== token) {
+    clearApiCache();
+  }
   authToken = token;
   if (token) {
     localStorage.setItem('criv_auth_token', token);
@@ -42,11 +55,41 @@ export function getAuthToken(): string | null {
   return authToken || localStorage.getItem('criv_auth_token');
 }
 
+function normalizeApiResponse<T>(json: any): T {
+  let result: any = { success: true, data: json };
+  if (json && typeof json === 'object' && json.data !== undefined) {
+    if (typeof json.data === 'object' && json.data !== null && !Array.isArray(json.data)) {
+      result = { success: true, ...json, data: json.data, ...json.data };
+    } else {
+      result = { success: true, ...json, data: json.data };
+    }
+  }
+  return result as T;
+}
+
 export async function apiRequest<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
   const token = getAuthToken();
+  const method = (options.method || 'GET').toUpperCase();
+  const url = `${API_BASE}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const cacheKey = `${token || 'anon'}:${url}`;
+
+  if (method === 'GET' && !options.signal) {
+    const cached = responseCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.value as T;
+    }
+
+    const existingRequest = inflightGets.get(cacheKey);
+    if (existingRequest) {
+      return existingRequest as Promise<T>;
+    }
+  } else if (method !== 'GET') {
+    clearApiCache();
+  }
+
   const headers: Record<string, string> = {
     Accept: 'application/json',
     ...(options.headers as Record<string, string>),
@@ -60,33 +103,44 @@ export async function apiRequest<T = any>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const url = `${API_BASE}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  const requestEpoch = cacheEpoch;
+  const executeFetch = async (): Promise<T> => {
+    const response = await fetch(url, {
+      ...options,
+      method,
+      headers,
+    });
 
-  const json = await response.json().catch(() => ({}));
-  if (!response.ok || json.success === false) {
-    if (response.status === 401 && !endpoint.includes('/auth/login')) {
-      setAuthToken(null);
-    }
-    const errorMsg = json.error?.message || `Request failed with status ${response.status}`;
-    throw new Error(errorMsg);
-  }
-
-  let result: any = { success: true, data: json };
-  if (json && typeof json === 'object') {
-    if (json.data !== undefined) {
-      if (typeof json.data === 'object' && json.data !== null && !Array.isArray(json.data)) {
-        result = { success: true, ...json, data: json.data, ...json.data };
-      } else {
-        result = { success: true, ...json, data: json.data };
+    const json = await response.json().catch(() => ({}));
+    if (!response.ok || json.success === false) {
+      if (response.status === 401 && !endpoint.includes('/auth/login')) {
+        setAuthToken(null);
       }
+      const errorMsg = json.error?.message || `Request failed with status ${response.status}`;
+      throw new Error(errorMsg);
     }
+
+    const result = normalizeApiResponse<T>(json);
+    if (method === 'GET' && !options.signal && requestEpoch === cacheEpoch) {
+      responseCache.set(cacheKey, {
+        expiresAt: Date.now() + GET_CACHE_TTL_MS,
+        value: result,
+      });
+    }
+    return result;
+  };
+
+  if (method === 'GET' && !options.signal) {
+    const pending = executeFetch().finally(() => {
+      if (inflightGets.get(cacheKey) === pending) {
+        inflightGets.delete(cacheKey);
+      }
+    });
+    inflightGets.set(cacheKey, pending);
+    return pending;
   }
 
-  return result as T;
+  return executeFetch();
 }
 
 export const api = {

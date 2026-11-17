@@ -1,16 +1,36 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/common/Navbar';
 import { MarginaliaLogo } from './components/common/MarginaliaLogo';
 import { LibraryPage } from './pages/LibraryPage';
-import { ReaderPage } from './pages/ReaderPage';
-import { ReviewPage } from './pages/ReviewPage';
-import { VaultPage } from './pages/VaultPage';
-import { DashboardPage } from './pages/DashboardPage';
-import { SettingsPage } from './pages/SettingsPage';
 import { AuthPage } from './pages/AuthPage';
+
+function lazyPage<TModule, TKey extends keyof TModule>(
+  loader: () => Promise<TModule>,
+  exportName: TKey
+) {
+  return lazy(async () => {
+    const mod = await loader();
+    return { default: mod[exportName] as React.ComponentType };
+  });
+}
+
+const ReaderPage = lazyPage(() => import('./pages/ReaderPage'), 'ReaderPage');
+const ReviewPage = lazyPage(() => import('./pages/ReviewPage'), 'ReviewPage');
+const VaultPage = lazyPage(() => import('./pages/VaultPage'), 'VaultPage');
+const DashboardPage = lazyPage(() => import('./pages/DashboardPage'), 'DashboardPage');
+const SettingsPage = lazyPage(() => import('./pages/SettingsPage'), 'SettingsPage');
+
+const RouteFallback: React.FC = () => (
+  <div className="min-h-[60vh] flex flex-col items-center justify-center p-6">
+    <Loader2 className="w-6 h-6 animate-spin text-violet-brand mb-2" />
+    <p className="font-mono text-xs font-bold text-ink-muted dark:text-ink-pewter">
+      Loading view...
+    </p>
+  </div>
+);
 
 const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -41,7 +61,7 @@ const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       </a>
       <Navbar />
       <main id="main-content" tabIndex={-1} className="flex-1 pb-24 md:pb-8 focus:outline-none">
-        {children}
+        <Suspense fallback={<RouteFallback />}>{children}</Suspense>
       </main>
     </div>
   );

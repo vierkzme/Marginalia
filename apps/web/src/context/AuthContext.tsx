@@ -35,17 +35,70 @@ interface AuthContextValue {
   logout: () => void;
 }
 
+const CACHED_USER_KEY = 'criv_cached_user';
+
+function normalizeAuthUser(profile: any, fallbackGoal = 20, fallbackIsDemo = false): AuthUser {
+  return {
+    id: profile.id,
+    email: profile.email,
+    fullName: profile.fullName,
+    dailyReviewGoal: profile.dailyReviewGoal ?? fallbackGoal,
+    currentStreak: profile.currentStreak ?? 0,
+    longestStreak: profile.longestStreak ?? 0,
+    isDemo: Boolean(profile.isDemo ?? fallbackIsDemo),
+  };
+}
+
+function readCachedUser(): AuthUser | null {
+  if (!getAuthToken()) {
+    return null;
+  }
+  try {
+    const raw = localStorage.getItem(CACHED_USER_KEY);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.id === 'string' && typeof parsed.email === 'string') {
+      return normalizeAuthUser(parsed);
+    }
+  } catch {
+    // Ignore malformed cached user profile
+  }
+  return null;
+}
+
+function persistCachedUser(nextUser: AuthUser | null): void {
+  try {
+    if (nextUser) {
+      localStorage.setItem(CACHED_USER_KEY, JSON.stringify(nextUser));
+    } else {
+      localStorage.removeItem(CACHED_USER_KEY);
+    }
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [initialCachedUser] = useState<AuthUser | null>(() => readCachedUser());
+  const [user, setUser] = useState<AuthUser | null>(initialCachedUser);
+  const [isLoading, setIsLoading] = useState<boolean>(
+    () => Boolean(getAuthToken()) && !initialCachedUser
+  );
   const [isDark, setIsDark] = useState<boolean>(() => {
     const saved = localStorage.getItem('criv_theme');
     if (saved === 'dark') return true;
     if (saved === 'light') return false;
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
+
+  const applyAuthenticatedUser = useCallback((nextUser: AuthUser | null) => {
+    setUser(nextUser);
+    persistCachedUser(nextUser);
+  }, []);
 
   useEffect(() => {
     if (isDark) {
@@ -60,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshProfile = useCallback(async () => {
     const token = getAuthToken();
     if (!token) {
-      setUser(null);
+      applyAuthenticatedUser(null);
       setIsLoading(false);
       return;
     }
@@ -69,26 +122,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res: any = await api.auth.me();
       const profile = res?.data || res;
       if (profile?.id) {
-        setUser({
-          id: profile.id,
-          email: profile.email,
-          fullName: profile.fullName,
-          dailyReviewGoal: profile.dailyReviewGoal ?? 20,
-          currentStreak: profile.currentStreak ?? 0,
-          longestStreak: profile.longestStreak ?? 0,
-          isDemo: Boolean(profile.isDemo),
-        });
+        applyAuthenticatedUser(normalizeAuthUser(profile));
       } else {
         setAuthToken(null);
-        setUser(null);
+        applyAuthenticatedUser(null);
       }
     } catch {
       setAuthToken(null);
-      setUser(null);
+      applyAuthenticatedUser(null);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [applyAuthenticatedUser]);
 
   useEffect(() => {
     refreshProfile();
@@ -99,15 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const data = res?.data || res;
     if (data?.token && data?.user) {
       setAuthToken(data.token);
-      setUser({
-        id: data.user.id,
-        email: data.user.email,
-        fullName: data.user.fullName,
-        dailyReviewGoal: data.user.dailyReviewGoal ?? 20,
-        currentStreak: data.user.currentStreak ?? 0,
-        longestStreak: data.user.longestStreak ?? 0,
-        isDemo: Boolean(data.user.isDemo),
-      });
+      applyAuthenticatedUser(normalizeAuthUser(data.user));
     } else {
       throw new Error('Invalid authentication response.');
     }
@@ -123,15 +160,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const data = res?.data || res;
     if (data?.token && data?.user) {
       setAuthToken(data.token);
-      setUser({
-        id: data.user.id,
-        email: data.user.email,
-        fullName: data.user.fullName,
-        dailyReviewGoal: data.user.dailyReviewGoal ?? payload.dailyReviewGoal ?? 20,
-        currentStreak: data.user.currentStreak ?? 0,
-        longestStreak: data.user.longestStreak ?? 0,
-        isDemo: false,
-      });
+      applyAuthenticatedUser(
+        normalizeAuthUser(data.user, payload.dailyReviewGoal ?? 20, false)
+      );
     } else {
       throw new Error('Invalid registration response.');
     }
@@ -142,11 +173,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const data = res?.data || res;
     if (data?.token && data?.user) {
       setAuthToken(data.token);
-      setUser({
-        id: data.user.id,
-        email: data.user.email,
-        fullName: data.user.fullName,
-        dailyReviewGoal: data.user.dailyReviewGoal ?? 20,
+      applyAuthenticatedUser({
+        ...normalizeAuthUser(data.user, 20, true),
         currentStreak: data.user.currentStreak ?? 14,
         longestStreak: data.user.longestStreak ?? 29,
         isDemo: true,
@@ -163,22 +191,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }): Promise<AuthUser> => {
     const res: any = await api.auth.updateProfile(payload);
     const data = res?.data || res;
-    const updatedUser: AuthUser = {
-      id: data.id,
-      email: data.email,
-      fullName: data.fullName,
-      dailyReviewGoal: data.dailyReviewGoal ?? 20,
-      currentStreak: data.currentStreak ?? 0,
-      longestStreak: data.longestStreak ?? 0,
-      isDemo: Boolean(data.isDemo),
-    };
-    setUser(updatedUser);
+    const updatedUser = normalizeAuthUser(data);
+    applyAuthenticatedUser(updatedUser);
     return updatedUser;
   };
 
   const logout = () => {
     setAuthToken(null);
-    setUser(null);
+    applyAuthenticatedUser(null);
   };
 
   const toggleTheme = () => setIsDark((prev) => !prev);
