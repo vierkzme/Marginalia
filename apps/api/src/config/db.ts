@@ -22,22 +22,54 @@ if (ENV.NODE_ENV !== 'production') {
 }
 
 let hasLoggedStoreMode = false;
+let cachedDbStatus: boolean | null = null;
+let lastCheckTime = 0;
+let pendingCheck: Promise<boolean> | null = null;
+const DB_CHECK_TTL_MS = 15_000;
 
-export async function isDatabaseConnected(): Promise<boolean> {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    if (!hasLoggedStoreMode) {
-      console.log('[Database] PostgreSQL connected successfully on port 5432.');
-      hasLoggedStoreMode = true;
-    }
-    return true;
-  } catch {
-    if (!hasLoggedStoreMode) {
-      console.log(
-        '[Store] PostgreSQL offline on localhost:5432 -> Running in Dual-Mode Local Seeded Vault.'
-      );
-      hasLoggedStoreMode = true;
-    }
-    return false;
+function logConnectionMode(connected: boolean): void {
+  if (hasLoggedStoreMode) {
+    return;
   }
+  if (connected) {
+    console.log('[Database] PostgreSQL connected successfully on port 5432.');
+  } else {
+    console.log(
+      '[Store] PostgreSQL offline on localhost:5432 -> Running in Dual-Mode Local Seeded Vault.'
+    );
+  }
+  hasLoggedStoreMode = true;
+}
+
+/**
+ * Checks PostgreSQL availability with a short TTL cache and in-flight
+ * deduplication so concurrent API requests avoid repeated `SELECT 1` probes.
+ */
+export async function isDatabaseConnected(): Promise<boolean> {
+  const now = Date.now();
+  if (cachedDbStatus !== null && now - lastCheckTime < DB_CHECK_TTL_MS) {
+    return cachedDbStatus;
+  }
+
+  if (pendingCheck) {
+    return pendingCheck;
+  }
+
+  pendingCheck = (async () => {
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      cachedDbStatus = true;
+      logConnectionMode(true);
+      return true;
+    } catch {
+      cachedDbStatus = false;
+      logConnectionMode(false);
+      return false;
+    } finally {
+      lastCheckTime = Date.now();
+      pendingCheck = null;
+    }
+  })();
+
+  return pendingCheck;
 }
