@@ -94,8 +94,8 @@ export const DashboardPage: React.FC = () => {
     totalVaultCount > 0 ? ((retainedCount / totalVaultCount) * 100).toFixed(1) : '0.0';
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-canvas-cream dark:bg-ink-dark py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="min-h-[calc(100vh-4rem)] bg-canvas-cream dark:bg-ink-dark">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
@@ -208,7 +208,7 @@ export const DashboardPage: React.FC = () => {
 
         {/* RETENTION DISTRIBUTION & TAG PILLS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 min-w-0">
             <RetentionChart distribution={retentionDistribution} />
           </div>
 

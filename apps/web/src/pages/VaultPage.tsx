@@ -112,8 +112,8 @@ export const VaultPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-canvas-cream dark:bg-ink-dark py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto space-y-7">
+    <div className="min-h-[calc(100vh-4rem)] bg-canvas-cream dark:bg-ink-dark">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-7">
         {/* HEADER & PILL SEARCH */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
