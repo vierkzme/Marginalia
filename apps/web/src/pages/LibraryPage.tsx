@@ -117,7 +117,10 @@ export const LibraryPage: React.FC = () => {
       .toUpperCase();
   }, []);
 
-  const heroArticle = articles[0] || null;
+  const heroArticle = useMemo(
+    () => articles.find((a) => !a.isCompleted) || articles[0] || null,
+    [articles]
+  );
 
   const filteredArticles = useMemo(() => {
     return articles.filter((article) => {
@@ -146,7 +149,7 @@ export const LibraryPage: React.FC = () => {
     });
   }, [articles, searchQuery, activeFilter]);
 
-  const goal1Done = dailyStats.todayArticlesRead > 0 || Boolean(heroArticle?.isCompleted);
+  const goal1Done = dailyStats.todayArticlesRead > 0;
   const goal2Done = dailyStats.todayCompletedReviews > 0;
   const goal3Done = dailyStats.todayWordsMined >= 3;
   const completedGoalsCount = [goal1Done, goal2Done, goal3Done].filter(Boolean).length;

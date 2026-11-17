@@ -61,17 +61,19 @@ export const WebReader: React.FC<WebReaderProps> = ({
   const [isLedgerOpen, setIsLedgerOpen] = useState(false);
   const [inspectedWord, setInspectedWord] = useState<SentenceHighlight | null>(null);
   const [isCompleted, setIsCompleted] = useState<boolean>(Boolean(article.isCompleted));
+  const [claimedToday, setClaimedToday] = useState<boolean>(false);
   const [completing, setCompleting] = useState<boolean>(false);
 
   useEffect(() => {
     setIsCompleted(Boolean(article.isCompleted));
+    setClaimedToday(false);
     if (article.id && (article.readingProgressPct || 0) === 0 && !article.isCompleted) {
       api.articles.updateProgress(article.id, { progressPct: 25 }).catch(() => {});
     }
   }, [article.id, article.isCompleted, article.readingProgressPct]);
 
   const handleCompleteReading = async () => {
-    if (isCompleted || completing) return;
+    if (claimedToday || completing) return;
     setCompleting(true);
     try {
       await api.articles.updateProgress(article.id, {
@@ -79,6 +81,7 @@ export const WebReader: React.FC<WebReaderProps> = ({
         isCompleted: true,
       });
       setIsCompleted(true);
+      setClaimedToday(true);
       await refreshProfile();
     } catch {
       // Ignore silent failure
@@ -344,13 +347,15 @@ export const WebReader: React.FC<WebReaderProps> = ({
                   Daily Reading Goal
                 </div>
                 <div className="text-xs font-medium opacity-80">
-                  {isCompleted
-                    ? 'Article marked as finished for today.'
-                    : 'Finished reading? Claim your daily reading XP.'}
+                  {claimedToday
+                    ? 'Daily reading recorded for today.'
+                    : isCompleted
+                      ? 'Previously completed. Claim again to count toward today\'s reading goal.'
+                      : 'Finished reading? Claim your daily reading XP.'}
                 </div>
               </div>
 
-              {isCompleted ? (
+              {claimedToday ? (
                 <span className="brutal-pill-btn inline-flex items-center gap-1.5 px-4 py-2 text-xs font-extrabold bg-emerald-100 text-emerald-950 shrink-0">
                   <CheckCircle2 className="w-4 h-4 text-emerald-700" aria-hidden="true" />
                   <span>Completed (+50 XP)</span>
@@ -367,7 +372,9 @@ export const WebReader: React.FC<WebReaderProps> = ({
                   ) : (
                     <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
                   )}
-                  <span>Complete Reading (+50 XP)</span>
+                  <span>
+                    {isCompleted ? 'Re-read & Claim (+50 XP)' : 'Complete Reading (+50 XP)'}
+                  </span>
                 </button>
               )}
             </div>
