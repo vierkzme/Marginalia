@@ -1,5 +1,12 @@
 import { prisma, isDatabaseConnected } from '../../config/db';
-import { memoryStore } from '../../config/store';
+import {
+  memoryStore,
+  formatLocalDateKey,
+  addLocalDays,
+  computeActivityStreaks,
+  refreshStoreUserStreak,
+  syncPrismaUserStreak,
+} from '../../config/store';
 
 function calculateDayXp(act: {
   articlesReadCount?: number;
@@ -22,7 +29,7 @@ export async function getDashboardAnalytics(userId: string) {
   const dbConnected = await isDatabaseConnected();
   const effectiveUserId = userId || '00000000-0000-0000-0000-000000000001';
   const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10);
+  const todayStr = formatLocalDateKey(now);
 
   let user: any = null;
   let vocabItems: any[] = [];
@@ -56,10 +63,24 @@ export async function getDashboardAnalytics(userId: string) {
     return dateStr === todayStr;
   });
 
+  const computedStreaks = computeActivityStreaks(activities, now, user?.longestStreak ?? 0);
+  if (dbConnected && user) {
+    await syncPrismaUserStreak(prisma, effectiveUserId, now);
+  } else if (
+    !dbConnected &&
+    user &&
+    (user.currentStreak !== computedStreaks.currentStreak ||
+      user.longestStreak !== computedStreaks.longestStreak ||
+      user.lastActiveDate !== computedStreaks.lastActiveDate)
+  ) {
+    refreshStoreUserStreak(memoryStore.getData(), effectiveUserId, now);
+    memoryStore.save();
+  }
+
   const todayArticlesRead = todayAct?.articlesReadCount || 0;
   const streak = {
-    currentStreak: user?.currentStreak ?? 0,
-    longestStreak: user?.longestStreak ?? 0,
+    currentStreak: computedStreaks.currentStreak,
+    longestStreak: computedStreaks.longestStreak,
     todayCompletedReviews: todayAct?.reviewsCompletedCount || 0,
     todayWordsMined: todayAct?.wordsMinedCount || 0,
     todayArticlesRead,
@@ -140,8 +161,8 @@ export async function getDashboardAnalytics(userId: string) {
   }> = [];
 
   for (let i = 364; i >= 0; i--) {
-    const d = new Date(now.getTime() - i * 86400000);
-    const dateStr = d.toISOString().slice(0, 10);
+    const d = addLocalDays(now, -i);
+    const dateStr = formatLocalDateKey(d);
     const entry = activityMap.get(dateStr);
 
     const wordsMined = entry?.wordsMined || 0;

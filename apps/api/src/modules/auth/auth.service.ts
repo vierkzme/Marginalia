@@ -3,7 +3,13 @@ import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import { ENV } from '../../config/env';
 import { prisma, isDatabaseConnected } from '../../config/db';
-import { memoryStore, generateSeedData, UserEntity } from '../../config/store';
+import {
+  memoryStore,
+  generateSeedData,
+  UserEntity,
+  refreshStoreUserStreak,
+  syncPrismaUserStreak,
+} from '../../config/store';
 
 export const DEMO_USER_ID = '00000000-0000-0000-0000-000000000001';
 export const DEMO_USER_EMAIL = 'ardy@vierkzme.dev';
@@ -109,6 +115,7 @@ export async function loginUser(email: string, password: string) {
       throw new Error('Invalid email or password.');
     }
 
+    const streak = await syncPrismaUserStreak(prisma, user.id);
     const token = signToken(user);
 
     return {
@@ -117,8 +124,8 @@ export async function loginUser(email: string, password: string) {
         email: user.email,
         fullName: user.fullName,
         dailyReviewGoal: user.dailyReviewGoal,
-        currentStreak: user.currentStreak,
-        longestStreak: user.longestStreak,
+        currentStreak: streak.currentStreak,
+        longestStreak: streak.longestStreak,
         isDemo,
       },
       token,
@@ -136,6 +143,8 @@ export async function loginUser(email: string, password: string) {
       throw new Error('Invalid email or password.');
     }
 
+    const streak = refreshStoreUserStreak(store, user.id);
+    memoryStore.save();
     const token = signToken(user);
 
     return {
@@ -144,8 +153,8 @@ export async function loginUser(email: string, password: string) {
         email: user.email,
         fullName: user.fullName,
         dailyReviewGoal: user.dailyReviewGoal,
-        currentStreak: user.currentStreak,
-        longestStreak: user.longestStreak,
+        currentStreak: streak.currentStreak,
+        longestStreak: streak.longestStreak,
         isDemo,
       },
       token,
@@ -181,6 +190,7 @@ export async function loginDemoUser() {
       });
     }
 
+    const streak = await syncPrismaUserStreak(prisma, user.id);
     const token = signToken(user);
     return {
       user: {
@@ -188,8 +198,8 @@ export async function loginDemoUser() {
         email: user.email,
         fullName: user.fullName,
         dailyReviewGoal: user.dailyReviewGoal,
-        currentStreak: user.currentStreak,
-        longestStreak: user.longestStreak,
+        currentStreak: streak.currentStreak,
+        longestStreak: streak.longestStreak,
         isDemo: true,
       },
       token,
@@ -201,9 +211,10 @@ export async function loginDemoUser() {
       const seed = generateSeedData();
       user = seed.users[0];
       store.users.unshift(user);
-      memoryStore.save();
     }
 
+    const streak = refreshStoreUserStreak(store, user.id);
+    memoryStore.save();
     const token = signToken(user);
     return {
       user: {
@@ -211,8 +222,8 @@ export async function loginDemoUser() {
         email: user.email,
         fullName: user.fullName,
         dailyReviewGoal: user.dailyReviewGoal,
-        currentStreak: user.currentStreak,
-        longestStreak: user.longestStreak,
+        currentStreak: streak.currentStreak,
+        longestStreak: streak.longestStreak,
         isDemo: true,
       },
       token,
@@ -240,8 +251,11 @@ export async function getUserProfile(userId: string) {
     if (!user) {
       throw new Error('User not found.');
     }
+    const streak = await syncPrismaUserStreak(prisma, user.id);
     return {
       ...user,
+      currentStreak: streak.currentStreak,
+      longestStreak: streak.longestStreak,
       isDemo: user.id === DEMO_USER_ID || user.email === DEMO_USER_EMAIL,
     };
   } else {
@@ -250,14 +264,16 @@ export async function getUserProfile(userId: string) {
     if (!user) {
       throw new Error('User not found.');
     }
+    const streak = refreshStoreUserStreak(store, user.id);
+    memoryStore.save();
     return {
       id: user.id,
       email: user.email,
       fullName: user.fullName,
       dailyReviewGoal: user.dailyReviewGoal,
-      currentStreak: user.currentStreak,
-      longestStreak: user.longestStreak,
-      lastActiveDate: user.lastActiveDate,
+      currentStreak: streak.currentStreak,
+      longestStreak: streak.longestStreak,
+      lastActiveDate: streak.lastActiveDate,
       createdAt: user.createdAt,
       isDemo: user.id === DEMO_USER_ID || user.email === DEMO_USER_EMAIL,
     };

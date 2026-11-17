@@ -2,7 +2,15 @@ import axios from 'axios';
 import { randomUUID } from 'crypto';
 import { ENV } from '../../config/env';
 import { prisma, isDatabaseConnected } from '../../config/db';
-import { memoryStore, VocabItemEntity, VocabContextEntity } from '../../config/store';
+import {
+  memoryStore,
+  VocabItemEntity,
+  VocabContextEntity,
+  formatLocalDateKey,
+  toUtcDateOnly,
+  refreshStoreUserStreak,
+  syncPrismaUserStreak,
+} from '../../config/store';
 
 export interface PreviewSelectionInput {
   userId: string;
@@ -271,7 +279,8 @@ export async function mineVocab(input: MineVocabInput) {
   const normalizedLemma = input.lemma.trim().toLowerCase();
   const dbConnected = await isDatabaseConnected();
   const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
+  const todayStr = formatLocalDateKey(today);
+  const todayDate = toUtcDateOnly(todayStr);
 
   if (dbConnected) {
     return await prisma.$transaction(async (tx) => {
@@ -358,12 +367,12 @@ export async function mineVocab(input: MineVocabInput) {
         where: {
           userId_activityDate: {
             userId: input.userId,
-            activityDate: today,
+            activityDate: todayDate,
           },
         },
         create: {
           userId: input.userId,
-          activityDate: today,
+          activityDate: todayDate,
           wordsMinedCount: 1,
           totalActivityScore: 1,
         },
@@ -372,6 +381,8 @@ export async function mineVocab(input: MineVocabInput) {
           totalActivityScore: { increment: 1 },
         },
       });
+
+      await syncPrismaUserStreak(tx, input.userId, today);
 
       const totalContexts = await tx.vocabContext.count({ where: { vocabItemId: vocabItem.id } });
 
@@ -475,6 +486,7 @@ export async function mineVocab(input: MineVocabInput) {
       dailyAct.totalActivityScore += 1;
     }
 
+    refreshStoreUserStreak(store, input.userId, today);
     memoryStore.save();
 
     const totalContextsCount = store.contexts.filter((c) => c.vocabItemId === vocabItem!.id).length;

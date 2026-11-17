@@ -257,25 +257,151 @@ function createSeedContext(
   };
 }
 
-/** Computes realistic 365-day learning metrics spanning heatmap intensity levels 0..4. */
+/** Formats a Date into a YYYY-MM-DD key using the local calendar date. */
+export function formatLocalDateKey(date: Date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/** Shifts a Date by deltaDays in local calendar time without UTC drift. */
+export function addLocalDays(date: Date, deltaDays: number): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + deltaDays);
+}
+
+/** Converts a YYYY-MM-DD key to a UTC midnight Date for Prisma @db.Date fields. */
+export function toUtcDateOnly(dateKey: string): Date {
+  return new Date(`${dateKey}T00:00:00.000Z`);
+}
+
+function parseDateKey(dateKey: string): Date {
+  const [y, m, d] = dateKey.split('-').map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+}
+
+function extractActivityDateKey(activityDate: Date | string): string {
+  return activityDate instanceof Date
+    ? activityDate.toISOString().slice(0, 10)
+    : String(activityDate).slice(0, 10);
+}
+
+/** Computes currentStreak, longestStreak, and lastActiveDate directly from daily activity rows. */
+export function computeActivityStreaks(
+  activities: Array<{
+    activityDate: Date | string;
+    wordsMinedCount?: number;
+    reviewsCompletedCount?: number;
+    articlesReadCount?: number;
+    totalActivityScore?: number;
+  }>,
+  now: Date = new Date(),
+  existingLongest: number = 0
+): { currentStreak: number; longestStreak: number; lastActiveDate: string | null } {
+  const activeDates = new Set<string>();
+  for (const act of activities) {
+    const hasActivity =
+      (act.totalActivityScore || 0) > 0 ||
+      (act.wordsMinedCount || 0) > 0 ||
+      (act.reviewsCompletedCount || 0) > 0 ||
+      (act.articlesReadCount || 0) > 0;
+    if (hasActivity) {
+      activeDates.add(extractActivityDateKey(act.activityDate));
+    }
+  }
+
+  if (activeDates.size === 0) {
+    return { currentStreak: 0, longestStreak: existingLongest, lastActiveDate: null };
+  }
+
+  const sortedDates = Array.from(activeDates).sort();
+  const lastActiveDate = sortedDates[sortedDates.length - 1];
+
+  let longestRun = 0;
+  let running = 0;
+  let prevKey: string | null = null;
+  for (const key of sortedDates) {
+    if (prevKey && formatLocalDateKey(addLocalDays(parseDateKey(prevKey), 1)) === key) {
+      running += 1;
+    } else {
+      running = 1;
+    }
+    if (running > longestRun) longestRun = running;
+    prevKey = key;
+  }
+
+  const todayKey = formatLocalDateKey(now);
+  const yesterdayKey = formatLocalDateKey(addLocalDays(now, -1));
+  let offset = activeDates.has(todayKey) ? 0 : activeDates.has(yesterdayKey) ? -1 : null;
+
+  let currentStreak = 0;
+  if (offset !== null) {
+    while (activeDates.has(formatLocalDateKey(addLocalDays(now, offset)))) {
+      currentStreak += 1;
+      offset -= 1;
+    }
+  }
+
+  return {
+    currentStreak,
+    longestStreak: Math.max(longestRun, currentStreak, existingLongest),
+    lastActiveDate,
+  };
+}
+
+/** Recomputes and applies streak counters on an in-memory user record. */
+export function refreshStoreUserStreak(
+  store: SeedDataStore,
+  userId: string,
+  now: Date = new Date()
+): { currentStreak: number; longestStreak: number; lastActiveDate: string | null } {
+  const user = store.users.find((u) => u.id === userId);
+  const userActs = (store.dailyActivities || []).filter((d) => d.userId === userId);
+  const computed = computeActivityStreaks(userActs, now, user?.longestStreak || 0);
+  if (user) {
+    user.currentStreak = computed.currentStreak;
+    user.longestStreak = computed.longestStreak;
+    user.lastActiveDate = computed.lastActiveDate;
+  }
+  return computed;
+}
+
+/** Recomputes and persists streak counters in PostgreSQL using DailyActivity history. */
+export async function syncPrismaUserStreak(
+  db: Pick<typeof prisma, 'dailyActivity' | 'user'>,
+  userId: string,
+  now: Date = new Date()
+): Promise<{ currentStreak: number; longestStreak: number; lastActiveDate: string | null }> {
+  const [user, activities] = await Promise.all([
+    db.user.findUnique({ where: { id: userId }, select: { longestStreak: true, currentStreak: true, lastActiveDate: true } }),
+    db.dailyActivity.findMany({ where: { userId } }),
+  ]);
+  const computed = computeActivityStreaks(activities, now, user?.longestStreak || 0);
+  const prevLastStr = user?.lastActiveDate ? user.lastActiveDate.toISOString().slice(0, 10) : null;
+  if (
+    user &&
+    (user.currentStreak !== computed.currentStreak ||
+      user.longestStreak !== computed.longestStreak ||
+      prevLastStr !== computed.lastActiveDate)
+  ) {
+    await db.user.update({
+      where: { id: userId },
+      data: {
+        currentStreak: computed.currentStreak,
+        longestStreak: computed.longestStreak,
+        lastActiveDate: computed.lastActiveDate ? toUtcDateOnly(computed.lastActiveDate) : null,
+      },
+    });
+  }
+  return computed;
+}
+
+/** Computes realistic 365-day historical learning metrics spanning heatmap intensity levels 0..4. */
 function generateYearActivities(now: Date, demoUserId: string): DailyActivityEntity[] {
   const dailyActivities: DailyActivityEntity[] = [];
-  for (let i = 364; i >= 0; i--) {
-    const d = new Date(now.getTime() - i * 86400000);
-    const dateStr = d.toISOString().slice(0, 10);
-
-    if (i === 0) {
-      dailyActivities.push({
-        id: `act-${dateStr}`,
-        userId: demoUserId,
-        activityDate: dateStr,
-        wordsMinedCount: 1,
-        reviewsCompletedCount: 2,
-        articlesReadCount: 0,
-        totalActivityScore: 3,
-      });
-      continue;
-    }
+  for (let i = 364; i >= 1; i--) {
+    const d = addLocalDays(now, -i);
+    const dateStr = formatLocalDateKey(d);
 
     const inCurrentStreak = i <= 14;
     const isRestDay = !inCurrentStreak && (i % 7 === 0 || (i > 180 && i % 4 === 0));
@@ -327,8 +453,8 @@ export function generateSeedData(): SeedDataStore {
   ];
 
   const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10);
   const dailyActivities = generateYearActivities(now, demoUserId);
+  const demoStreaks = computeActivityStreaks(dailyActivities, now, 29);
 
   const article1Raw =
     'Despite the tight deadline, the backend team decided to bite the bullet and migrate the legacy database. Earlier last month, they ran into a severe memory leak in production. To fix it permanently, they had to brush up on their memory profiling skills and sweep nothing under the rug.';
@@ -1186,9 +1312,9 @@ export function generateSeedData(): SeedDataStore {
         passwordHash: '$2a$10$wK1k6H1UoWn6pQ.55tH85.eP3kQ86X2q3Y4f2LgK5d4n0R2jY2.zW',
         fullName: 'Ardy Developer',
         dailyReviewGoal: 20,
-        currentStreak: 14,
-        longestStreak: 29,
-        lastActiveDate: todayStr,
+        currentStreak: demoStreaks.currentStreak,
+        longestStreak: demoStreaks.longestStreak,
+        lastActiveDate: demoStreaks.lastActiveDate,
         createdAt: new Date(now.getTime() - 86400000 * 90).toISOString(),
       },
     ],
@@ -1345,6 +1471,21 @@ function syncStoreWithLatestSeed(store: SeedDataStore): boolean {
     ) || changed;
   changed =
     mergeMissingByKey(store.dictionaryCache, latestSeed.dictionaryCache, (c) => c.lemma) || changed;
+
+  const now = new Date();
+  for (const user of store.users || []) {
+    const prevStreak = user.currentStreak;
+    const prevLongest = user.longestStreak;
+    const prevLast = user.lastActiveDate;
+    const next = refreshStoreUserStreak(store, user.id, now);
+    if (
+      prevStreak !== next.currentStreak ||
+      prevLongest !== next.longestStreak ||
+      prevLast !== next.lastActiveDate
+    ) {
+      changed = true;
+    }
+  }
 
   return changed;
 }

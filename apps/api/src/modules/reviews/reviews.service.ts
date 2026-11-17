@@ -1,6 +1,13 @@
 import { randomUUID } from 'crypto';
 import { prisma, isDatabaseConnected } from '../../config/db';
-import { memoryStore, ReviewLogEntity } from '../../config/store';
+import {
+  memoryStore,
+  ReviewLogEntity,
+  formatLocalDateKey,
+  toUtcDateOnly,
+  refreshStoreUserStreak,
+  syncPrismaUserStreak,
+} from '../../config/store';
 import { calculateSM2, previewNextIntervals, ReviewButton } from './sm2.engine';
 import { generateClozeDeletion } from './cloze.generator';
 
@@ -179,7 +186,8 @@ export async function gradeReview(
 ) {
   const dbConnected = await isDatabaseConnected();
   const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10);
+  const todayStr = formatLocalDateKey(now);
+  const todayDate = toUtcDateOnly(todayStr);
 
   if (dbConnected) {
     const item = await prisma.vocabItem.findUnique({
@@ -235,12 +243,12 @@ export async function gradeReview(
         where: {
           userId_activityDate: {
             userId,
-            activityDate: now,
+            activityDate: todayDate,
           },
         },
         create: {
           userId,
-          activityDate: now,
+          activityDate: todayDate,
           reviewsCompletedCount: 1,
           totalActivityScore: 1,
         },
@@ -250,8 +258,8 @@ export async function gradeReview(
         },
       });
 
-      const user = await tx.user.findUnique({ where: { id: userId } });
-      const currentStreak = user?.currentStreak || 1;
+      const streak = await syncPrismaUserStreak(tx, userId, now);
+      const currentStreak = streak.currentStreak;
 
       return {
         vocabItemId: updatedItem.id,
@@ -333,8 +341,8 @@ export async function gradeReview(
       daily.totalActivityScore += 1;
     }
 
-    const user = store.users.find((u) => u.id === userId) || store.users[0];
-    const currentStreak = user?.currentStreak || 1;
+    const streak = refreshStoreUserStreak(store, userId, now);
+    const currentStreak = streak.currentStreak;
 
     memoryStore.save();
 

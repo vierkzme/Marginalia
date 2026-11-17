@@ -4,7 +4,15 @@ import { Readability } from '@mozilla/readability';
 import { randomUUID } from 'crypto';
 import { ENV } from '../../config/env';
 import { prisma, isDatabaseConnected } from '../../config/db';
-import { memoryStore, ArticleEntity, ArticleSentenceEntity } from '../../config/store';
+import {
+  memoryStore,
+  ArticleEntity,
+  ArticleSentenceEntity,
+  formatLocalDateKey,
+  toUtcDateOnly,
+  refreshStoreUserStreak,
+  syncPrismaUserStreak,
+} from '../../config/store';
 import { calculateArticleCoverage } from './coverage.service';
 
 export interface ImportArticleInput {
@@ -344,8 +352,8 @@ export async function updateArticleReadingProgress(
 ) {
   const dbConnected = await isDatabaseConnected();
   const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10);
-  const todayDate = new Date(`${todayStr}T00:00:00.000Z`);
+  const todayStr = formatLocalDateKey(now);
+  const todayDate = toUtcDateOnly(todayStr);
 
   if (dbConnected) {
     const existing = await prisma.article.findFirst({
@@ -364,8 +372,20 @@ export async function updateArticleReadingProgress(
       ? 100
       : Math.max(existing.readingProgressPct, requestedPct);
 
+    const existingTodayAct = await prisma.dailyActivity.findUnique({
+      where: {
+        userId_activityDate: {
+          userId,
+          activityDate: todayDate,
+        },
+      },
+    });
+    const explicitCompleteToday =
+      input.isCompleted === true && (existingTodayAct?.articlesReadCount || 0) === 0;
+
     const shouldRecordRead =
       (nextCompleted && !existing.isCompleted) ||
+      explicitCompleteToday ||
       (nextProgress >= 50 && existing.readingProgressPct < 50);
 
     const updated = await prisma.article.update({
@@ -396,24 +416,7 @@ export async function updateArticleReadingProgress(
         },
       });
 
-      const user = await prisma.user.findUnique({ where: { id: userId } });
-      if (user) {
-        const lastStr = user.lastActiveDate
-          ? user.lastActiveDate.toISOString().slice(0, 10)
-          : null;
-        if (lastStr !== todayStr) {
-          const yesterdayStr = new Date(now.getTime() - 86400000).toISOString().slice(0, 10);
-          const nextStreak = lastStr === yesterdayStr ? user.currentStreak + 1 : 1;
-          await prisma.user.update({
-            where: { id: userId },
-            data: {
-              currentStreak: nextStreak,
-              longestStreak: Math.max(user.longestStreak, nextStreak),
-              lastActiveDate: todayDate,
-            },
-          });
-        }
-      }
+      await syncPrismaUserStreak(prisma, userId, now);
     }
 
     return {
@@ -440,17 +443,21 @@ export async function updateArticleReadingProgress(
         : prevPct;
     const nextProgress = nextCompleted ? 100 : Math.max(prevPct, requestedPct);
 
+    let dailyAct = store.dailyActivities.find(
+      (d) => d.userId === userId && d.activityDate === todayStr
+    );
+    const explicitCompleteToday =
+      input.isCompleted === true && (dailyAct?.articlesReadCount || 0) === 0;
+
     const shouldRecordRead =
       (nextCompleted && !prevCompleted) ||
+      explicitCompleteToday ||
       (nextProgress >= 50 && prevPct < 50);
 
     article.readingProgressPct = nextProgress;
     article.isCompleted = nextCompleted;
 
     if (shouldRecordRead) {
-      let dailyAct = store.dailyActivities.find(
-        (d) => d.userId === userId && d.activityDate === todayStr
-      );
       if (!dailyAct) {
         dailyAct = {
           id: `act-${userId}-${todayStr}`,
@@ -467,14 +474,7 @@ export async function updateArticleReadingProgress(
         dailyAct.totalActivityScore += 1;
       }
 
-      const user = store.users.find((u) => u.id === userId);
-      if (user && user.lastActiveDate !== todayStr) {
-        const yesterdayStr = new Date(now.getTime() - 86400000).toISOString().slice(0, 10);
-        const nextStreak = user.lastActiveDate === yesterdayStr ? user.currentStreak + 1 : 1;
-        user.currentStreak = nextStreak;
-        user.longestStreak = Math.max(user.longestStreak, nextStreak);
-        user.lastActiveDate = todayStr;
-      }
+      refreshStoreUserStreak(store, userId, now);
     }
 
     memoryStore.save();
