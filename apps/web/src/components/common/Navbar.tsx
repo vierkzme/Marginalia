@@ -12,6 +12,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { MarginaliaLogo } from './MarginaliaLogo';
 
 export const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -49,9 +50,7 @@ export const Navbar: React.FC = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 gap-3">
             <NavLink to="/" className="flex items-center gap-2.5 text-[#141413] dark:text-ink-ivory group shrink-0">
-              <span className="font-mono text-xs font-extrabold px-2 py-1 rounded-lg bg-violet-brand text-white border-2 border-[#141413] dark:border-[#3A3E4C] shadow-brutal-xs">
-                M
-              </span>
+              <MarginaliaLogo className="w-9 h-9 shrink-0 group-hover:-translate-y-0.5 transition-transform" />
               <span className="font-sans text-lg sm:text-xl font-extrabold tracking-tight">
                 Marginalia
               </span>

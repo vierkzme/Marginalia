@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2, Sparkles, ArrowRight, UserPlus, LogIn } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { BauhausHeaderArt } from '../components/common/BauhausHeaderArt';
+import { MarginaliaLogo } from '../components/common/MarginaliaLogo';
 
 interface AuthPageProps {
   initialMode?: 'login' | 'register';
@@ -76,10 +77,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode = 'login' }) => 
         {/* BAUHAUS BANNER */}
         <div className="relative border-b-2 border-[#141413] dark:border-[#3A3E4C] overflow-hidden">
           <BauhausHeaderArt variant="mondrian" className="w-full h-36 sm:h-40" />
-          <div className="absolute top-3 left-4 flex items-center gap-2 px-3 py-1 rounded-full border-2 border-[#141413] bg-white shadow-brutal-xs">
-            <span className="w-5 h-5 rounded-md bg-violet-brand text-white font-mono text-[11px] font-extrabold flex items-center justify-center">
-              M
-            </span>
+          <div className="absolute top-3 left-4 flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full border-2 border-[#141413] bg-white shadow-brutal-xs">
+            <MarginaliaLogo className="w-6 h-6 shrink-0" />
             <span className="font-sans text-xs font-extrabold text-[#141413]">Marginalia</span>
           </div>
         </div>

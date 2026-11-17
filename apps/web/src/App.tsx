@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/common/Navbar';
+import { MarginaliaLogo } from './components/common/MarginaliaLogo';
 import { LibraryPage } from './pages/LibraryPage';
 import { ReaderPage } from './pages/ReaderPage';
 import { ReviewPage } from './pages/ReviewPage';
@@ -17,7 +18,8 @@ const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-canvas-cream dark:bg-ink-dark">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-brand mb-3" />
+        <MarginaliaLogo className="w-12 h-12 mb-3" />
+        <Loader2 className="w-6 h-6 animate-spin text-violet-brand mb-2" />
         <p className="font-mono text-xs font-bold text-ink-muted dark:text-ink-pewter">
           Restoring session...
         </p>
